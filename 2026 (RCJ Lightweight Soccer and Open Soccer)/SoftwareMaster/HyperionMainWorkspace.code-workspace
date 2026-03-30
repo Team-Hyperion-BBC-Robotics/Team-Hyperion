@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"name": "Software",
+			"path": "Software"
+		},
+		{
+			"name": "SlaveTeensySoftware",
+			"path": "SlaveTeensySoftware"
+		},
+		{
+			"name": "Hyperion 2026 Test",
+			"path": "Hyperion 2026 Test"
+		},
+		{
+			"path": "../Documentation/HyperionWebsite"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cmath": "cpp"
+		},
+		"liveServer.settings.multiRootWorkspaceName": "HyperionWebsite"
+	}
+}

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Robot — Team Hyperion · Brisbane Boys' College</title>
+  <link rel="stylesheet" href="assets/shared.css"/>
+  <style>
+    .page-hero {
+      position: relative; z-index: 1;
+      padding: 140px 48px 50px; text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 60%, rgba(0,114,63,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .page-hero-logo { height: 56px; width: auto; display: block; margin: 0 auto 24px; filter: brightness(1.1) drop-shadow(0 0 12px rgba(0,114,63,0.35)); }
+    .overview-strip {
+      position: relative; z-index: 1;
+      background: var(--black2); border-bottom: 1px solid var(--border);
+      padding: 28px 48px; display: flex; align-items: center; gap: 0; overflow-x: auto;
+    }
+    .overview-spec { display: flex; flex-direction: column; gap: 3px; padding: 0 36px; border-right: 1px solid var(--border); flex-shrink: 0; }
+    .overview-spec:first-child { padding-left: 0; }
+    .overview-spec:last-child { border-right: none; }
+    .ov-label { font-family: 'Share Tech Mono',monospace; font-size: 0.58rem; letter-spacing: 0.22em; color: var(--grey); text-transform: uppercase; }
+    .ov-val { font-family: 'Bebas Neue',sans-serif; font-size: 1.15rem; letter-spacing: 0.08em; color: var(--green-bright); }
+    .tab-shell { position: relative; z-index: 1; }
+    .primary-tabs {
+      display: flex; gap: 0; border-bottom: 1px solid var(--border);
+      background: rgba(5,10,5,0.6); padding: 0 48px;
+      position: sticky; top: 64px; z-index: 50; backdrop-filter: blur(12px);
+      justify-content: space-evenly;
+    }
+    .p-tab {
+      font-family: 'Bebas Neue',sans-serif; font-size: 1.2rem; letter-spacing: 0.14em;
+      color: var(--grey); padding: 18px 32px; cursor: pointer;
+      border-bottom: 3px solid transparent; transition: all 0.2s; user-select: none; white-space: nowrap;
+      flex: 1; text-align: center;
+    }
+    .p-tab:hover { color: var(--white); }
+    .p-tab.active { color: var(--green-bright); border-bottom-color: var(--green-bright); }
+    .secondary-tabs {
+      display: none; gap: 0; padding: 0 48px;
+      background: rgba(12,21,12,0.7); border-bottom: 1px solid var(--border); overflow-x: auto;
+      justify-content: center;
+    }
+    .secondary-tabs.visible { display: flex; }
+    .s-tab {
+      font-family: 'Share Tech Mono',monospace; font-size: 0.68rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--grey); padding: 12px 20px; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none; white-space: nowrap;
+    }
+    .s-tab:hover { color: var(--white); }
+    .s-tab.active { color: var(--green-bright); border-bottom-color: var(--green-bright); background: rgba(0,114,63,0.06); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .prose-wrap { max-width: 860px; margin: 0 auto; padding: 64px 48px; }
+    .prose-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; letter-spacing: 0.3em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 10px; }
+    .prose-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 5vw, 4.2rem); letter-spacing: 0.06em; color: var(--white); line-height: 1; margin-bottom: 10px; }
+    .prose-h1 .accent { color: var(--green-bright); }
+    .prose-rule { width: 80px; height: 2px; background: linear-gradient(90deg, var(--green), var(--green-bright), transparent); margin: 16px 0 36px; }
+    .prose-h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.08em; color: var(--white); margin: 48px 0 14px; }
+    .prose-h2 .accent { color: var(--green-bright); }
+    .prose-h3 { font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; letter-spacing: 0.22em; color: var(--green-bright); text-transform: uppercase; margin: 32px 0 10px; }
+    .prose-body { font-size: 1.02rem; color: rgba(240,255,244,0.72); line-height: 1.9; margin-bottom: 20px; }
+    .prose-body strong { color: var(--white); font-weight: 600; }
+    .prose-body code { font-family: 'Share Tech Mono', monospace; font-size: 0.82em; color: var(--green-bright); background: rgba(0,114,63,0.1); padding: 2px 6px; border-radius: 2px; }
+    figure.inline-img { float: right; width: 42%; margin: 0 0 24px 32px; position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); }
+    figure.inline-img.left { float: left; margin: 0 32px 24px 0; }
+    figure.inline-img.wide { float: none; width: 100%; margin: 32px 0; clear: both; }
+    figure.inline-img.xwide { float: none; width: calc(100% + 96px); margin: 32px -48px; clear: both; }
+    figure.inline-img img { width: 100%; display: block; object-fit: cover; filter: contrast(1.04) saturate(0.9); transition: transform 0.4s, filter 0.4s; }
+    figure.inline-img:hover img { transform: scale(1.02); filter: contrast(1.07) saturate(1.05); }
+    figure.inline-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(5,10,5,0.4) 0%, transparent 50%); pointer-events: none; }
+    figure.inline-img figcaption { position: relative; z-index: 1; font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em; color: rgba(240,255,244,0.45); text-transform: uppercase; padding: 8px 12px; background: rgba(5,10,5,0.5); backdrop-filter: blur(4px); }
+    figure.inline-img::before { content: ''; position: absolute; top: 8px; left: 8px; width: 16px; height: 16px; border-top: 2px solid var(--green-bright); border-left: 2px solid var(--green-bright); z-index: 2; pointer-events: none; }
+    .img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 32px 0; clear: both; }
+    .img-pair figure.inline-img { float: none; width: 100%; margin: 0; }
+    .prose-body::after, .prose-clear { display: block; content: ''; clear: both; }
+    .prose-clear { height: 0; overflow: hidden; }
+    .prose-callout { background: rgba(0,114,63,0.07); border: 1px solid rgba(0,114,63,0.22); border-left: 3px solid var(--green-bright); padding: 20px 24px; margin: 28px 0; font-size: 0.95rem; color: rgba(240,255,244,0.72); line-height: 1.75; clear: both; }
+    .prose-callout strong { color: var(--green-bright); }
+    .prose-code { background: rgba(0,0,0,0.55); border: 1px solid rgba(0,114,63,0.2); border-left: 3px solid rgba(0,114,63,0.5); padding: 20px 22px; margin: 24px 0; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; line-height: 1.75; color: rgba(240,255,244,0.6); overflow-x: auto; white-space: pre; clear: both; }
+    .prose-code .kw  { color: #5078ff; }
+    .prose-code .fn  { color: #00c85a; }
+    .prose-code .cm  { color: rgba(240,255,244,0.3); font-style: italic; }
+    .prose-code .val { color: #ffb400; }
+    .prose-code .ty  { color: #80bfff; }
+    .prose-table { width: 100%; border-collapse: collapse; margin: 24px 0; clear: both; }
+    .prose-table tr { border-bottom: 1px solid rgba(0,114,63,0.1); }
+    .prose-table tr:hover { background: rgba(0,114,63,0.04); }
+    .prose-table td { padding: 12px 4px; font-size: 0.9rem; vertical-align: top; }
+    .prose-table td:first-child { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; color: var(--green-bright); text-transform: uppercase; width: 36%; }
+    .prose-table td:last-child { color: rgba(240,255,244,0.75); }
+    .prose-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 32px; clear: both; }
+    .prose-chip { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--green-bright); border: 1px solid rgba(0,114,63,0.35); padding: 4px 10px; text-transform: uppercase; }
+    .prose-divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; clear: both; }
+    .prose-sensor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 32px 0; clear: both; }
+    .prose-sensor-card { background: var(--card-bg); border: 1px solid var(--border); padding: 24px 20px; transition: border-color 0.3s; position: relative; overflow: hidden; }
+    .prose-sensor-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green-bright), transparent); opacity: 0; transition: opacity 0.3s; }
+    .prose-sensor-card:hover { border-color: rgba(0,114,63,0.45); }
+    .prose-sensor-card:hover::before { opacity: 1; }
+    .psc-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+    .psc-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 0.08em; color: var(--white); margin-bottom: 4px; }
+    .psc-part { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 8px; }
+    .psc-desc { font-size: 0.82rem; color: var(--grey); line-height: 1.55; }
+    .prose-state-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 32px 0; clear: both; }
+    .prose-state-card { background: var(--card-bg); border: 1px solid var(--border); padding: 24px 18px; transition: border-color 0.3s; }
+    .prose-state-card:hover { border-color: rgba(0,114,63,0.4); }
+    .pstate-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+    .pstate-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; color: var(--white); margin-bottom: 6px; }
+    .pstate-desc { font-size: 0.82rem; color: var(--grey); line-height: 1.55; }
+    .prose-diagram { background: var(--card-bg); border: 1px solid var(--border); padding: 28px; margin: 28px 0; clear: both; }
+    .prose-diagram svg { width: 100%; height: auto; }
+    .prose-diag-label { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; color: var(--grey); text-transform: uppercase; text-align: center; margin-top: 10px; }
+
+    @media (max-width: 900px) {
+      .prose-wrap { padding: 48px 20px; }
+      .primary-tabs, .secondary-tabs { padding: 0 20px; }
+      .overview-strip { padding: 20px; }
+      figure.inline-img, figure.inline-img.left { float: none; width: 100%; margin: 24px 0; }
+      figure.inline-img.xwide { width: 100%; margin: 24px 0; }
+      .img-pair { grid-template-columns: 1fr; }
+      .prose-sensor-grid { grid-template-columns: repeat(2, 1fr); }
+      .prose-state-flow { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .prose-sensor-grid { grid-template-columns: 1fr; }
+      .p-tab { padding: 14px 16px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-hero">
+  <img src="assets/schoolLogo.png" alt="Brisbane Boys' College" class="page-hero-logo fade-up delay-1"/>
+  <p class="section-label fade-up delay-1">Brisbane Boys' College</p>
+  <h1 class="section-title fade-up delay-2">THE <span class="accent">MACHINE</span></h1>
+  <div class="green-line" style="margin:16px auto 24px;"></div>
+  <p class="fade-up delay-3" style="font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:0.18em;color:var(--grey);text-transform:uppercase;">Hyperion 2026's Beast</p>
+</div>
+
+<div class="tab-shell">
+  <div class="primary-tabs">
+    <div class="p-tab active" data-primary="structural" onclick="switchPrimary('structural')">Structural</div>
+    <div class="p-tab" data-primary="electrical" onclick="switchPrimary('electrical')">Electrical</div>
+    <div class="p-tab" data-primary="software" onclick="switchPrimary('software')">Software</div>
+  </div>
+
+  <div class="secondary-tabs" id="sec-software">
+    <div class="s-tab active" data-panel="bno055" onclick="switchSub('software','bno055')">BNO055 &amp; IMU</div>
+    <div class="s-tab" data-panel="tssp" onclick="switchSub('software','tssp')">TSSP System</div>
+    <div class="s-tab" data-panel="light" onclick="switchSub('software','light')">Light System</div>
+    <div class="s-tab" data-panel="camera" onclick="switchSub('software','camera')">Camera</div>
+    <div class="s-tab" data-panel="bluetooth" onclick="switchSub('software','bluetooth')">Bluetooth</div>
+    <div class="s-tab" data-panel="attacker" onclick="switchSub('software','attacker')">Attacker Strategy</div>
+    <div class="s-tab" data-panel="defender" onclick="switchSub('software','defender')">Defender Strategy</div>
+  </div>
+
+  <!-- STRUCTURAL -->
+  <div class="panel active" id="panel-structural">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Structural · CAD Design</p>
+      <h2 class="prose-h1">CHASSIS &amp; <span class="accent">FORM</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img wide">
+        <img src="assets/robot.jpg" alt="Hyperion 2026" onerror="this.onerror=null;this.src='assets/robot.png'"/>
+        <figcaption>Hyperion 2026 — Full Assembly</figcaption>
+      </figure>
+      <p class="prose-h3">Overview</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Drive System</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Weight Management</p>
+      <p class="prose-body">Coming Soon.</p>
+      <hr class="prose-divider"/>
+      <p class="prose-eyebrow">Key Components</p>
+      <h2 class="prose-h1" style="font-size:2rem;">STRUCTURAL <span class="accent">BREAKDOWN</span></h2>
+      <p class="prose-h3">Chassis Plates</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Omni Wheels &amp; Motor Mounts</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Electronics Enclosure &amp; Battery Bay</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Sensor Ring</p>
+      <p class="prose-body">Coming Soon.</p>
+    </div>
+  </div>
+
+  <!-- ELECTRICAL -->
+  <div class="panel" id="panel-electrical">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Electrical · PCB Design and Power</p>
+      <h2 class="prose-h1">ELECTRONICS &amp; <span class="accent">SENSORS</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/pcb.jpg" alt="Custom PCB" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>Custom PCB — Main Control Board</figcaption>
+      </figure>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Main Microcontroller — Teensy 4.1</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Motor Drivers</p>
+      <p class="prose-body">Coming Soon.</p>
+      <p class="prose-h3">Power System</p>
+      <p class="prose-body">Coming Soon.</p>
+      <table class="prose-table">
+        <tr><td>MCU</td><td>Teensy 4.1 — ARM Cortex-M7 @ 600MHz</td></tr>
+        <tr><td>Motor Drivers</td><td>Coming Soon.</td></tr>
+        <tr><td>IMU</td><td>Coming Soon.</td></tr>
+        <tr><td>Vision</td><td>Coming Soon.</td></tr>
+        <tr><td>Ball Detection</td><td>Coming Soon.</td></tr>
+        <tr><td>Line Detection</td><td>Coming Soon.</td></tr>
+        <tr><td>Comms</td><td>Coming Soon.</td></tr>
+        <tr><td>Power</td><td>Coming Soon.</td></tr>
+        <tr><td>Actuators</td><td>Coming Soon.</td></tr>
+      </table>
+      <hr class="prose-divider"/>
+      <p class="prose-eyebrow">Sensor Suite</p>
+      <h2 class="prose-h1" style="font-size:2rem;">ALL <span class="accent">SENSORS</span></h2>
+      <div class="prose-sensor-grid">
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">BNO055</div><div class="psc-part">9-Axis IMU · I²C</div><p class="psc-desc">Coming Soon.</p></div>
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">TSSP4038</div><div class="psc-part">IR Ball Detection · Digital Array</div><p class="psc-desc">Coming Soon.</p></div>
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">IR Phototransistors</div><div class="psc-part">Line Detection · Underside Array</div><p class="psc-desc">Coming Soon.</p></div>
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">OpenMV RT</div><div class="psc-part">Machine Vision · UART</div><p class="psc-desc">Coming Soon.</p></div>
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">Bluetooth Module</div><div class="psc-part">Inter-Robot Comms · UART Bridge</div><p class="psc-desc">Coming Soon.</p></div>
+        <div class="prose-sensor-card"><span class="psc-icon"></span><div class="psc-name">Voltage Divider</div><div class="psc-part">Battery Monitor · ADC Input</div><p class="psc-desc">Coming Soon.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: BNO055 -->
+  <div class="panel" id="panel-bno055">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Orientation & Stability</p>
+      <h2 class="prose-h1">BNO055 <span class="accent">IMU System</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/bno055.jpg" alt="BNO055 Sensor" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>BNO055 Absolute Orientation Sensor</figcaption>
+      </figure>
+      <p class="prose-h3">An Overview</p>
+      <p class="prose-body">In the heat of a match, the robot is constantly bumped, spun, and pushed by other players. Without a sense of direction, it would quickly become disoriented, driving toward its own goal by mistake. The BNO055 Inertial Measurement Unit (IMU) acts as the robot's "Inner Ear," providing a rock-solid sense of balance and heading.</p>
+      <p class="prose-h3">Maintaining North</p>
+      <p class="prose-body">While the TSSP "eyes" find the ball, the IMU keeps the robot facing the correct way. We use the <strong>IMUPLUS</strong> mode, which combines accelerometer and gyroscope data to give us a stable "Heading" (the 0 to 360-degree angle the robot is facing).</p>
+      <ul class="prose-body" style="padding-left:40px;">
+        <li><strong>Compass Reset:</strong> When we flick the calibration switch, the code resets the sensor's orientation. This defines "Front" for the rest of the game.</li>
+        <li><strong>Drift Compensation:</strong> Standard gyroscopes "drift" over time, but the BNO055 uses internal algorithms to keep the heading precise even during high-speed collisions.</li>
+        <li><strong>Active Correction:</strong> No matter which way the robot is told to drive, it is always trying to fight the rotation of the wheels to stay facing the opponent's goal.</li>
+      </ul>
+      <p class="prose-h3">The Stability Math</p>
+      <p class="prose-body">To keep the robot straight, we use a <strong>PID Controller</strong> (Proportional, Integral, Derivative). The IMU tells us our current angle, and we compare it to our target (usually 0°). The difference between them is the "Error." The robot then applies a counter-rotation (Correction) to cancel out that error.</p>
+      <div class="prose-code"><span class="cm">// 1. Get the current bearing from the IMU</span>
+bno.<span class="fn">getEvent</span>(&bearing);
+<span class="kw">float</span> currentHeading = bearing.orientation.x;
+
+<span class="cm">// 2. Normalise the angle to [-180, 180] for easier math</span>
+<span class="kw">float</span> error = com.<span class="fn">normaliseAngle180</span>(currentHeading);
+
+<span class="cm">// 3. Calculate Correction (_cor) using PID</span>
+_cor = -correction.<span class="fn">update</span>(error, <span class="val">0.0</span>);
+
+<span class="cm">// 4. Apply to Motors</span>
+motors.<span class="fn">run</span>(_spd, _dir, _cor);</div>
+      <p class="prose-h3">Key Functions</p>
+      <table class="prose-table">
+        <tr><td>begin()</td><td>Initializes the sensor via I2C and checks if the "Inner Ear" is actually plugged in.</td></tr>
+        <tr><td>setExtCrystalUse()</td><td>Tells the sensor to use an external clock for higher mathematical precision.</td></tr>
+        <tr><td>getEvent()</td><td>Snaps a picture of the robot's current orientation in 3D space.</td></tr>
+        <tr><td>normaliseAngle180()</td><td>A helper function that ensures the robot understands that 359° is actually just 1° away from 0°.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: TSSP -->
+  <div class="panel" id="panel-tssp">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Ball Detection</p>
+      <h2 class="prose-h1">TSSP <span class="accent">System</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/tssp.jpg" alt="TSSP IR Array" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>TSSP77038TR (SMD) IR Receiver</figcaption>
+      </figure>
+      <p class="prose-h3">An Overview</p>
+      <p class="prose-body">Imagine our robot is standing in the middle of a dark room. Somewhere in that room, there is a glowing orange ball. Our goal is to find that ball and kick it into a goal. We use two electronic "brains" (called Teensys) to do this. One brain acts like the Eyes, and the other acts like the Captain.</p>
+      <p class="prose-h3">The "Secondary" Teensy</p>
+      <p class="prose-body">This part of the code is responsible for looking around. We have several sensors (TSSP sensors) placed in a circle around the robot. These sensors are like little eyes that can only see infrared light from the ball.</p>
+      <ul class="prose-body" style="padding-left:40px;">
+        <li>The infrared ball blinks very fast. The "Eyes" look at each sensor 255 times in a row. Every time a sensor sees a flash of light, it adds a point.</li>
+        <li>If the sensor on the front-right has 200 points and the one on the back has 0, the robot knows the ball is somewhere to the front-right.</li>
+        <li>The code takes the top four strongest sensor readings and combines them using vector summation to calculate both the angle and strength of the ball signal.</li>
+      </ul>
+      <p class="prose-h3">The "Eyes" Math</p>
+      <p class="prose-body">The system identifies the ball's position by isolating the four highest sensor readings. Each sensor is treated as a vector, where the physical orientation of the sensor represents the angle and the point count represents the magnitude. By plotting these on a Cartesian plane and performing a vector summation, the robot calculates a single resultant vector.</p>
+      <div class="prose-code"><span class="cm">// TSSP Update — Ball Direction and Strength Calculation</span>
+<span class="kw">for</span> (i = <span class="val">0</span>; i &lt; <span class="val">255</span>; i++) {
+  tsspValues[j] += <span class="val">1</span> - <span class="fn">digitalRead</span>(tsspPins[j]);
+}
+
+x = <span class="fn">sum</span>(tsspSortedValues * <span class="fn">cos</span>(sensorAngle));
+y = <span class="fn">sum</span>(tsspSortedValues * <span class="fn">sin</span>(sensorAngle));
+
+ballStr = ((<span class="val">3</span> * top[<span class="val">0</span>]) + (<span class="val">2</span> * top[<span class="val">1</span>]) + top[<span class="val">2</span>] + top[<span class="val">3</span>]) / <span class="val">7.0</span>;
+
+<span class="kw">if</span> (ballStr != <span class="val">0</span>) {
+  ballDir = <span class="val">360</span> - <span class="fn">fmod</span>((RAD_TO_DEG * <span class="fn">atan2f</span>(y, x)) - <span class="val">90</span>, <span class="val">360</span>);
+} <span class="kw">else</span> {
+  ballDir = <span class="val">0</span>;
+}</div>
+      <p class="prose-h3">The "Captain" (Primary's) Math</p>
+      <p class="prose-body">The Captain's brain uses exponential functions to make decisions. Instead of a simple turn, it calculates a Strength Factor based on the ball's signal intensity. This factor determines the Angle Shift — the mathematical curve required to orbit the ball.</p>
+      <div class="prose-code"><span class="cm">// 1. Normalize ball direction to [-180, 180]</span>
+<span class="kw">float</span> relativeDir = (bInfo.<span class="fn">dir</span>() &gt; <span class="val">180</span>) ? (bInfo.<span class="fn">dir</span>() - <span class="val">360</span>) : bInfo.<span class="fn">dir</span>();
+
+<span class="cm">// 2. Calculate Strength Factor</span>
+<span class="kw">float</span> ratio = <span class="fn">constrain</span>(bInfo.<span class="fn">str</span>() / ORBIT_TUNER, <span class="val">0.0</span>, <span class="val">1.0</span>);
+<span class="kw">float</span> strengthFactor = <span class="fn">constrain</span>(<span class="val">0.02</span> * ratio * <span class="fn">expf</span>(<span class="val">4.5</span> * ratio), <span class="val">0.0</span>, <span class="val">1.0</span>);
+
+<span class="cm">// 3. Calculate Angle Shift (Orbit Offset)</span>
+<span class="kw">float</span> angleEffect = <span class="fn">min</span>(<span class="val">0.4</span> * <span class="fn">expf</span>(<span class="val">0.25</span> * <span class="fn">abs</span>(relativeDir)) - <span class="val">0.4</span>, <span class="val">90.0</span>);
+<span class="kw">float</span> totalOffset = strengthFactor * angleEffect;
+
+<span class="cm">// 4. Apply direction adjustment and scale speed</span>
+<span class="kw">float</span> adjustment = (relativeDir &lt; <span class="val">0</span>) ? -totalOffset : totalOffset;
+mInfo.<span class="fn">dir</span> = <span class="fn">fmod</span>(bInfo.<span class="fn">dir</span>() + adjustment, <span class="val">360.0</span>);
+mInfo.<span class="fn">spd</span> = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (<span class="val">1.0</span> - totalOffset / <span class="val">90.0</span>);</div>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: LIGHT -->
+  <div class="panel" id="panel-light">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Line Avoidance</p>
+      <h2 class="prose-h1">LIGHT <span class="accent">SYSTEM</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/lightsensor.jpg" alt="Light Sensor" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>Underside Light Sensor Array</figcaption>
+      </figure>
+      <p class="prose-body">The LightSystem library detects the white boundary lines of the RoboCup field via an underside IR phototransistor array. Each sensor emits IR light downward and measures the reflected intensity — the white field lines reflect significantly more than the dark playing surface, producing a clear contrast spike that the library converts into a line direction and state value. In the state selection priority chain, <code>STATE_LINE_AVOID</code> sits immediately after calibration — meaning it pre-empts both attack and defend behaviour the instant any line is detected.</p>
+      <p class="prose-h3">Avoidance Logic</p>
+      <p class="prose-body">When <code>ls.get_line_dir()</code> returns anything other than <code>-1</code>, the robot is on the line. The avoidance direction is computed as <code>(line_dir + 180°) mod 360</code> — the exact opposite of where the line was detected.</p>
+      <p class="prose-h3">Vertical Correction in Defend</p>
+      <p class="prose-body">The light system also plays a role in the defender's vector sub-state outside of full line avoidance mode. The <code>get_line_state()</code> value feeds a vertical PID (<code>vert</code>) that gently pushes the defender away from the back wall.</p>
+      <p class="prose-h3">Hardware — Multiplexed Sensor Ring</p>
+      <p class="prose-body">Rather than dedicating one microcontroller pin per sensor, the system uses a <strong>4-bit binary multiplexer</strong> scheme. Four digital output pins (<code>inPin[0–3]</code>) select which of up to 32 sensors to read, addressed via two shared analog pins (<code>LIGHT_PIN</code> / <code>LIGHT_PIN2</code>). Sensors 0–15 are read from one channel; 16–31 from the other. This allows the full sensor ring to be polled using only <strong>6 GPIO pins total</strong>.</p>
+      <div class="prose-code"><span class="cm">// inner_read() — Binary multiplexer selection</span>
+<span class="kw">for</span> (<span class="ty">uint8_t</span> i = <span class="val">0</span>; i &lt; <span class="val">4</span>; i++) {
+  <span class="fn">digitalWrite</span>(inPin[i], (sNum &gt;&gt; i) &amp; <span class="val">1</span>);
+}
+<span class="kw">return</span> (sNum &gt;= <span class="val">16</span>) ? <span class="fn">analogRead</span>(LIGHT_PIN) : <span class="fn">analogRead</span>(LIGHT_PIN2);</div>
+
+      <p class="prose-h3">Direction Algorithm — Cluster Detection</p>
+      <p class="prose-body">The core of <code>calculate_line_dir()</code> works in three stages. First, sensors above the white threshold (<code>LS_THRESH</code>) that are contiguous with their neighbours are grouped into <strong>clusters</strong> — arcs of sensors simultaneously seeing the line. Up to 4 clusters are tracked. Each cluster's angular midpoint is then computed by averaging start and end indices and scaling to degrees. Finally, the number of clusters determines how the final line direction is resolved:</p>
+      <div class="prose-state-flow">
+        <div class="prose-state-card">
+          <span class="pstate-icon">①</span>
+          <div class="pstate-title">1 Cluster</div>
+          <p class="pstate-desc">Line direction = midpoint of the single detected cluster.</p>
+        </div>
+        <div class="prose-state-card">
+          <span class="pstate-icon">②</span>
+          <div class="pstate-title">2 Clusters</div>
+          <p class="pstate-desc">Average angle between both midpoints, with 360° wraparound compensation applied.</p>
+        </div>
+        <div class="prose-state-card">
+          <span class="pstate-icon">③</span>
+          <div class="pstate-title">3 Clusters</div>
+          <p class="pstate-desc">Outermost two clusters are averaged — the central cluster is discarded.</p>
+        </div>
+        <div class="prose-state-card">
+          <span class="pstate-icon">⊘</span>
+          <div class="pstate-title">0 Clusters</div>
+          <p class="pstate-desc">No line detected. <code>lineDirection</code> is set to <code>-1</code> and the state machine takes over.</p>
+        </div>
+      </div>
+      <p class="prose-body">A special wraparound correction handles the edge case where a cluster spans the boundary between the last and first sensor in the ring — ensuring the midpoint is computed correctly across the 0/NUM_LS seam.</p>
+
+      <p class="prose-h3">State Machine — <code>calculate_line_state()</code></p>
+      <p class="prose-body">A four-state machine tracks the robot's relationship to the line across frames. Transitions are driven by whether <code>lineDirection != -1</code> (line detected) and whether the measured direction has shifted <strong>140° or more</strong> between cycles — indicating the robot has crossed fully over the line rather than tracked along it.</p>
+      <table class="prose-table">
+        <tr><td>State 0 — Off</td><td>No line detected. Enters State 1 the moment any sensor cluster appears.</td></tr>
+        <tr><td>State 1 — On</td><td>Robot is tracking the line. Transitions to State 2 if direction flips ≥ 140°.</td></tr>
+        <tr><td>State 2 — Crossing</td><td>Robot has crossed over the line. Transitions to State 3 if line contact is lost.</td></tr>
+        <tr><td>State 3 — Exited</td><td>Line was crossed and then lost. Previous direction is restored via dead-reckoning.</td></tr>
+      </table>
+      <p class="prose-body">In <strong>State 3</strong>, the <code>update()</code> loop restores <code>prevLineDirection</code> rather than using the current (lost) value. This keeps the avoidance vector valid for the brief moment the robot is airborne over the boundary — preventing erratic direction searching when contact is momentarily broken.</p>
+
+      <p class="prose-h3">Avoidance Logic</p>
+      <p class="prose-body">When <code>ls.get_line_dir()</code> returns anything other than <code>-1</code>, the robot is on the line. The avoidance direction is simply the <strong>exact opposite</strong> — computed as <code>(line_dir + 180°) mod 360</code>. Speed is scaled by a PID controller fed from <code>get_line_state()</code>, so the robot brakes harder the deeper into the line it has gone.</p>
+      <div class="prose-code"><span class="cm">// STATE_LINE_AVOID — Full avoidance response</span>
+_spd = -lineAvoid.<span class="fn">update</span>(ls.<span class="fn">get_line_state</span>(), <span class="val">0.0</span>);
+_dir = <span class="fn">fmod</span>(ls.<span class="fn">get_line_dir</span>() + <span class="val">180.0</span>, <span class="val">360</span>);
+
+<span class="cm">// LWDEFEND_VECTOR — Soft wall pushback for Defender</span>
+<span class="ty">float</span> vertVect = vert.<span class="fn">update</span>(ls.<span class="fn">get_line_state</span>(), <span class="val">1.6</span>);</div>
+
+      <p class="prose-h3">Vertical Correction in Defend</p>
+      <p class="prose-body">Outside of full line avoidance mode, the light system feeds a secondary role in the defender's <code>LWDEFEND_VECTOR</code> sub-state. The raw <code>get_line_state()</code> value drives a vertical PID (<code>vert</code>) that gently pushes the defender away from the back wall — a soft, continuous correction that keeps the robot out of the danger zone without triggering a hard avoidance manoeuvre.</p>
+
+      <div class="prose-chips">
+        <span class="prose-chip">Highest Priority</span>
+        <span class="prose-chip">4-bit Multiplexer</span>
+        <span class="prose-chip">Cluster Detection</span>
+        <span class="prose-chip">4-State Machine</span>
+        <span class="prose-chip">Reverse Direction</span>
+        <span class="prose-chip">PID Speed</span>
+        <span class="prose-chip">Dead Reckoning</span>
+        <span class="prose-chip">Defender Wall Guard</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: CAMERA -->
+  <div class="panel" id="panel-camera">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Vision</p>
+      <h2 class="prose-h1">OPENMV <span class="accent">CAMERA</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/camera.jpg" alt="OpenMV Camera" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>OpenMV RT — Vision Module</figcaption>
+      </figure>
+      <p class="prose-body">The camera script runs as a standalone MicroPython program on the <strong>OpenMV RT</strong> — a dedicated vision co-processor that handles all colour detection entirely independently of the main Teensy. Every frame, it hunts for three coloured objects on the field, finds their pixel centroids, and fires the results over UART to the Teensy in a compact byte packet. The Teensy never touches raw image data — it only ever sees the final coordinates.</p>
+
+      <p class="prose-h3">Camera Initialisation — Locked Exposure</p>
+      <p class="prose-body">Before the main loop begins, the camera is configured to produce <strong>deterministic, reproducible images</strong> regardless of the ambient lighting in the competition venue. Auto-gain, auto-white-balance, and auto-exposure are all explicitly disabled. Exposure is fixed at <code>12,000 µs</code> and the frame is cropped to a <code>120×120</code> pixel window centred on the sensor — reducing processing time and focusing the blob detector on the area directly in front of the robot.</p>
+      <div class="prose-code"><span class="cm"># Locked exposure — no automatic adjustments</span>
+sensor.<span class="fn">set_auto_gain</span>(<span class="val">False</span>)
+sensor.<span class="fn">set_auto_whitebal</span>(<span class="val">False</span>)
+sensor.<span class="fn">set_auto_exposure</span>(<span class="val">False</span>, exposure_us=<span class="val">12000</span>)
+sensor.<span class="fn">set_windowing</span>((<span class="val">120</span>, <span class="val">120</span>))   <span class="cm"># crop to centre window</span></div>
+      <p class="prose-body">Locking the exposure is critical at competition. RoboCup venues vary wildly in lighting — a camera left on auto would constantly shift its colour interpretation between matches, causing blobs to disappear or false-positive on the wrong target. With a fixed exposure the team can tune thresholds once in the pits and trust them to hold for the entire match.</p>
+
+      <p class="prose-h3">Colour Thresholds — LAB Colour Space</p>
+      <p class="prose-body">Detection uses the <strong>LAB colour space</strong> rather than RGB. LAB separates luminance from colour information, making the detector far more robust to changes in brightness. Each threshold tuple defines a bounding box in LAB space: <code>(L_min, L_max, A_min, A_max, B_min, B_max)</code>.</p>
+      <table class="prose-table">
+        <tr><td>Index 1 — Yellow Goal</td><td>High L, positive A, high positive B — bright warm yellow. Targets the team's attack goal.</td></tr>
+        <tr><td>Index 2 — Blue Goal</td><td>High L, negative B — cool blue. Targets the opponent's defend goal.</td></tr>
+        <tr><td>Index 4 — Orange Ball</td><td>The IR-reflective orange ball sits in a distinct LAB region separate from both goals.</td></tr>
+      </table>
+      <p class="prose-body">Note that <code>blob.code()</code> returns a bitmask corresponding to which threshold index matched — <code>1</code>, <code>2</code>, or <code>4</code> — not a zero-based index. The <code>data</code> array uses these codes directly as slot indices to keep assignment unambiguous.</p>
+
+      <p class="prose-h3">Blob Detection &amp; Centroid Extraction</p>
+      <p class="prose-body"><code>img.find_blobs()</code> scans the cropped frame for connected regions matching any of the three thresholds simultaneously. Small noise regions are filtered out via <code>pixels_threshold=10</code> and <code>area_threshold=10</code>. Overlapping blobs of the same colour are merged into a single region. The result list is then <strong>sorted by area descending</strong> — so if multiple blobs of the same colour appear (reflections, partial occlusion), only the largest is used.</p>
+      <div class="prose-code"><span class="cm"># Find, merge, and sort all colour blobs by area</span>
+blobs = img.<span class="fn">find_blobs</span>(t, pixels_threshold=<span class="val">10</span>, area_threshold=<span class="val">10</span>, merge=<span class="val">True</span>)
+blobs = <span class="fn">sorted</span>(blobs, key=<span class="kw">lambda</span> blob: -blob.<span class="fn">area</span>())
+
+<span class="cm"># Write centroid (cx, cy) into the correct slot by blob colour code</span>
+data = [[-<span class="val">1</span>,-<span class="val">1</span>],[-<span class="val">1</span>,-<span class="val">1</span>],[-<span class="val">1</span>,-<span class="val">1</span>]]
+<span class="kw">for</span> blob <span class="kw">in</span> blobs:
+    data[blob.<span class="fn">code</span>()] = [blob.<span class="fn">cx</span>(), blob.<span class="fn">cy</span>()]</div>
+      <p class="prose-body">Each slot in <code>data</code> initialises to <code>[-1, -1]</code>. If a colour is not detected in a given frame, its slot remains <code>-1</code> — a sentinel value the Teensy uses to determine that the target is not currently visible.</p>
+
+      <p class="prose-h3">UART Packet — Byte Stream to Teensy</p>
+      <p class="prose-body">Once centroids are resolved, a compact <strong>8-byte packet</strong> is sent over UART at <code>115,200 baud</code>. The packet opens with two fixed header bytes (<code>200</code>, <code>122</code>) that the Teensy uses to frame-sync and validate incoming data, followed by the X and Y centroid of each of the three colour slots in order.</p>
+      <div class="prose-code"><span class="cm"># Packet structure: [200, 122, cx1, cy1, cx2, cy2, cx3, cy3]</span>
+uart.<span class="fn">writechar</span>(<span class="val">200</span>)   <span class="cm"># Header byte 1</span>
+uart.<span class="fn">writechar</span>(<span class="val">122</span>)   <span class="cm"># Header byte 2</span>
+<span class="kw">for</span> i <span class="kw">in</span> range(<span class="val">3</span>):
+    uart.<span class="fn">writechar</span>(data[i][<span class="val">0</span>])   <span class="cm"># cx — horizontal centroid (-1 if unseen)</span>
+    uart.<span class="fn">writechar</span>(data[i][<span class="val">1</span>])   <span class="cm"># cy — vertical centroid  (-1 if unseen)</span></div>
+
+      <div class="prose-callout">
+        <strong>Why pixel coordinates, not angles?</strong> Sending raw <code>cx/cy</code> values keeps the OpenMV's job minimal and fast — it does no trigonometry. The Teensy's <code>Camera</code> library converts pixel position to field angle using the known camera FOV, and handles the <code>-1</code> sentinel to gate goal-tracking and kicker logic accordingly.
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <!-- C++ / TEENSY SIDE — NEW SECTION                            -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <hr class="prose-divider"/>
+      <p class="prose-eyebrow">Software · Teensy-Side Processing</p>
+      <h2 class="prose-h1" style="font-size:2rem;">CAMERA <span class="accent">C++ LIBRARY</span></h2>
+      <div class="prose-rule"></div>
+
+      <p class="prose-body">Once the OpenMV fires its 8-byte packet over UART, all the heavy lifting shifts to the Teensy's <strong>Camera C++ library</strong>. This layer is responsible for validating the incoming stream, converting raw pixel centroids into real-world centimetres, computing angles and distances to each target, and finally producing the movement vectors the strategy loop actually drives from.</p>
+
+      <p class="prose-h3">Initialisation — <code>Camera::init()</code></p>
+      <p class="prose-body">A single call to <code>init()</code> opens the hardware serial port connected to the OpenMV at <strong>115,200 baud</strong> — matching the rate the MicroPython script writes at. This must be called once during setup before the main loop ever calls <code>update()</code>.</p>
+      <div class="prose-code"><span class="kw">void</span> Camera::<span class="fn">init</span>() {
+    cameraSerial.<span class="fn">begin</span>(<span class="val">115200</span>);
+}</div>
+
+      <p class="prose-h3">Packet Reception &amp; Validation — <code>Camera::update()</code></p>
+      <p class="prose-body">Every call to <code>update()</code> attempts to consume exactly one vision packet from the serial buffer. The function first checks that enough bytes are available, then reads the first byte and <em>peeks</em> at the second — if the pair does not match the expected header (<code>200</code>, <code>122</code>), the call returns immediately without touching any goal or ball state. This prevents stale or partially-received packets from corrupting the robot's world model.</p>
+      <div class="prose-code"><span class="kw">void</span> Camera::<span class="fn">update</span>(<span class="kw">bool</span> attackBlue) {
+    <span class="kw">if</span> (cameraSerial.<span class="fn">available</span>() &lt; CAM_PACKET_SIZE) <span class="kw">return</span>;
+    <span class="kw">int</span> b1 = cameraSerial.<span class="fn">read</span>();
+    <span class="kw">int</span> b2 = cameraSerial.<span class="fn">peek</span>();
+    <span class="kw">if</span> (b1 != CAM_START_PACK_1 || b2 != CAM_START_PACK_2) <span class="kw">return</span>;
+    cameraSerial.<span class="fn">read</span>();   <span class="cm">// consume the peeked header byte</span>
+    <span class="cm">// ... read goalXY, goalYY, goalXB, goalYB, ballX, ballY</span>
+}</div>
+
+      <p class="prose-h3">Coordinate Shift — <code>Camera::shift()</code></p>
+      <p class="prose-body">Raw pixel values from the OpenMV are centred on the <em>top-left corner</em> of its 120×120 crop window. <code>shift()</code> re-origins both axes to the <strong>centre of the robot</strong> by subtracting a fixed <code>CAMERA_PIXEL_SHIFT</code> offset. This is skipped entirely when a coordinate is <code>0</code> — the sentinel for "object not seen" — so invisible targets are never accidentally re-mapped.</p>
+      <div class="prose-code"><span class="kw">void</span> Camera::<span class="fn">shift</span>(<span class="kw">int</span>&amp; x, <span class="kw">int</span>&amp; y) {
+    <span class="kw">if</span> (x != <span class="val">0</span>) {
+        x -= CAMERA_PIXEL_SHIFT;
+        y -= CAMERA_PIXEL_SHIFT;
+    }
+}</div>
+
+      <p class="prose-h3">Pixel → Centimetre Conversion — <code>Camera::px_to_cm()</code></p>
+      <p class="prose-body">A <strong>linear regression</strong> formula maps the pixel scale to real-world distance. The coefficients were derived empirically by placing known objects at measured distances in front of the camera and fitting a line through the resulting pixel readings. This gives the Teensy an approximate physical scale it can use for distance and angle maths.</p>
+      <div class="prose-code"><span class="kw">float</span> Camera::<span class="fn">px_to_cm</span>(<span class="kw">int</span> px) {
+    <span class="kw">return</span> (<span class="val">0.361429</span> * px) - <span class="val">36.18095</span>;
+}</div>
+      <div class="prose-callout">
+        <strong>Why linear regression?</strong> The perspective projection through a wide-angle lens is non-linear, but over the relatively small depth range the robot encounters on a RoboCup field the linear approximation is accurate enough to guide goal-tracking and kicker decisions without the overhead of a full perspective model.
+      </div>
+
+      <p class="prose-h3">Distance &amp; Angle Calculation</p>
+      <p class="prose-body">Two helpers turn the centimetre-space (x, y) displacement into the polar form the strategy layer actually uses. <code>calc_distance()</code> applies the standard Euclidean norm, while <code>calc_angle()</code> uses <code>atan2f</code> and then rotates the result by 90° to align zero-degrees with the robot's forward axis rather than the mathematical convention of pointing along the positive x-axis.</p>
+      <div class="prose-code"><span class="kw">float</span> Camera::<span class="fn">calc_distance</span>(<span class="kw">float</span> x, <span class="kw">float</span> y) {
+    <span class="kw">return</span> <span class="fn">sqrtf</span>(<span class="fn">pow</span>(x, <span class="val">2</span>) + <span class="fn">pow</span>(y, <span class="val">2</span>));
+}
+
+<span class="kw">float</span> Camera::<span class="fn">calc_angle</span>(<span class="kw">float</span> opp, <span class="kw">float</span> adj) {
+    <span class="cm">// Rotate 90° so 0° = straight ahead, not mathematical east</span>
+    <span class="kw">return</span> <span class="fn">fmod</span>(<span class="val">90</span> - (<span class="fn">atan2f</span>(opp, adj) * RAD_TO_DEG), <span class="val">360</span>);
+}</div>
+
+      <p class="prose-h3">Goal Assignment — Attack vs. Defend</p>
+      <p class="prose-body">The <code>update()</code> call receives a single <code>attackBlue</code> flag from the strategy layer. Depending on this flag, the yellow and blue goal pixel streams are swapped between the <code>attackGoal</code> and <code>defendGoal</code> objects — meaning the rest of the codebase never needs to know which physical colour it is tracking, only whether it is attacking or defending. Visibility is gated on the Y coordinate being non-zero (the <code>-1</code> / <code>0</code> sentinel from the OpenMV).</p>
+      <div class="prose-code"><span class="kw">if</span> (attackBlue) {
+    attackGoal._angle   = <span class="fn">calc_angle</span>(cmgoalYB, cmgoalXB);
+    attackGoal._dist    = <span class="fn">calc_distance</span>(cmgoalXB, cmgoalYB);
+    attackGoal._visible = (goalYB != <span class="val">0</span>);
+
+    defendGoal._angle   = <span class="fn">calc_angle</span>(cmgoalYY, cmgoalXY);
+    defendGoal._dist    = <span class="fn">calc_distance</span>(cmgoalXY, cmgoalYY);
+    defendGoal._visible = (goalYY != <span class="val">0</span>);
+} <span class="kw">else</span> {
+    <span class="cm">// Swap: yellow becomes attack, blue becomes defend</span>
+    attackGoal._angle   = <span class="fn">calc_angle</span>(cmgoalYY, cmgoalXY);
+    <span class="cm">// ... mirror assignments</span>
+}</div>
+
+      <p class="prose-h3">Ball Orbit Vector — Open Mode</p>
+      <p class="prose-body">When the robot is in <strong>open / attacker mode</strong> (<code>OPEN == true</code>), <code>update()</code> computes a curved approach vector for the ball rather than a straight-line heading. The same exponential orbit algorithm used by the TSSP primary is re-applied here using camera-derived ball position — so the robot arcs around to get behind the ball before committing to a shot, rather than driving straight at it and deflecting it sideways.</p>
+      <div class="prose-code"><span class="kw">float</span> relativeDir = (ballInfo._angle &gt; <span class="val">180</span>) ? (ballInfo._angle - <span class="val">360</span>) : ballInfo._angle;
+<span class="kw">float</span> ratio          = <span class="fn">constrain</span>(ballInfo._dist / ORBIT_TUNER, <span class="val">0.0f</span>, <span class="val">1.0f</span>);
+<span class="kw">float</span> strengthFactor = <span class="fn">constrain</span>(<span class="val">0.02f</span> * ratio * <span class="fn">expf</span>(<span class="val">4.5f</span> * ratio), <span class="val">0.0f</span>, <span class="val">1.0f</span>);
+<span class="kw">float</span> angleEffect    = <span class="fn">min</span>(<span class="val">0.4f</span> * <span class="fn">expf</span>(<span class="val">0.25f</span> * <span class="fn">abs</span>(relativeDir)) - <span class="val">0.4f</span>, <span class="val">90.0f</span>);
+<span class="kw">float</span> totalOffset    = strengthFactor * angleEffect;
+
+<span class="kw">float</span> directionAdjustment = (relativeDir &lt; <span class="val">0</span>) ? -totalOffset : totalOffset;
+<span class="kw">float</span> speedReduction      = totalOffset / <span class="val">90.0f</span>;
+
+ballInfo._moveAngle = <span class="fn">fmod</span>(ballInfo._angle + directionAdjustment, <span class="val">360.0f</span>);
+ballInfo._moveSpeed = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (<span class="val">1.0f</span> - speedReduction);</div>
+
+      <p class="prose-h3">Localisation — <code>Camera::localise_to()</code></p>
+      <p class="prose-body">The camera can also reconstruct the robot's absolute field position. If either goal is visible, the known goal positions on the field (<strong>±85 cm</strong> from centre) are combined with the measured goal angle and distance to back-calculate the robot's (x, y) coordinates. <code>localise_to()</code> then computes the magnitude and heading needed to reach any arbitrary target coordinate — used by the defender to hold a position on the field rather than just react to the ball.</p>
+      <div class="prose-code"><span class="cm">// Reconstruct robot position from defend goal</span>
+robotData._x = <span class="val">0</span> - (defendGoal.<span class="fn">dist</span>() * <span class="fn">cos</span>(defendGoal.<span class="fn">angle</span>() * DEG_TO_RAD));
+robotData._y = -CENTER_TO_GOAL - (defendGoal.<span class="fn">dist</span>() * <span class="fn">sin</span>(defendGoal.<span class="fn">angle</span>() * DEG_TO_RAD));
+
+<span class="cm">// Then navigate toward a target coordinate</span>
+robotData._moveMag   = <span class="fn">sqrt</span>(<span class="fn">pow</span>(robotData._x - targX, <span class="val">2</span>) + <span class="fn">pow</span>(robotData._y - targY, <span class="val">2</span>));
+robotData._moveAngle = <span class="fn">atan2f</span>(targY - robotData._y, targX - robotData._x) * RAD_TO_DEG;</div>
+      <div class="prose-callout">
+        <strong>Fallback hierarchy:</strong> <code>localise_to()</code> prefers the <strong>defend goal</strong> for position estimation since it is always behind the robot and provides the most stable reference. If only the attack goal is visible it falls back to that. If neither goal is seen, movement magnitude drops to zero and the robot holds still — preventing blind charging when the vision pipeline momentarily loses both targets.
+      </div>
+
+      <p class="prose-h3">C++ Library — Function Reference</p>
+      <table class="prose-table">
+        <tr><td>init()</td><td>Opens the UART serial link to the OpenMV at 115,200 baud. Call once on startup.</td></tr>
+        <tr><td>update(attackBlue)</td><td>Reads and validates one packet, converts coordinates, assigns attack/defend goals, and computes ball orbit vector or robot position depending on mode flag.</td></tr>
+        <tr><td>localise_to(targX, targY)</td><td>Uses visible goal geometry to estimate the robot's field position and compute a movement vector toward the given target coordinates.</td></tr>
+        <tr><td>shift(x, y)</td><td>Re-centres pixel coordinates from the camera's top-left origin to the robot's centre. No-ops on zero (unseen) values.</td></tr>
+        <tr><td>px_to_cm(px)</td><td>Applies a linear regression to convert a pixel offset into an approximate real-world centimetre displacement.</td></tr>
+        <tr><td>calc_distance(x, y)</td><td>Euclidean distance from the robot-centric origin to the target.</td></tr>
+        <tr><td>calc_angle(opp, adj)</td><td>Robot-centric bearing to a target via atan2, rotated 90° so 0° aligns with the robot's forward direction.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: BLUETOOTH -->
+  <div class="panel" id="panel-bluetooth">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Inter-Robot Communication</p>
+      <h2 class="prose-h1">BLUETOOTH <span class="accent">COMMUNICATION</span></h2>
+      <div class="prose-rule"></div>
+      <figure class="inline-img">
+        <img src="assets/bluetooth.jpg" alt="Bluetooth Module" onerror="this.style.display='none';this.parentElement.style.display='none'"/>
+        <figcaption>Bluetooth Communication Module</figcaption>
+      </figure>
+      <p class="prose-h3">An Overview</p>
+      <p class="prose-body">Imagine we have two robots on a soccer field. If both robots chase the ball at the same time, they will crash into each other or leave the goal wide open. To play as a team, they need to talk. We use HC-05 Bluetooth modules to let the robots "whisper" to each other across the field.</p>
+      <p class="prose-h3">How they Talk (The "Packet" System)</p>
+      <p class="prose-body">The robots don't just send random numbers; they send a structured "envelope" of information called a Packet. Every message starts with two Start Bytes (the number 255 twice) to ensure valid data. The packet contains: Ball Strength, Ball Direction, Goal Angle, Goal Distance, Battery Level, and X/Y coordinates.</p>
+      <p class="prose-h3">How they Decide (The "Role Weighting" Logic)</p>
+      <p class="prose-body">Each robot calculates a "Score" for itself and its teammate based on several factors. The robot with the higher score becomes the Attacker. Factors include Ball Strength (0-40pts), Attack Cone (0 or 20pts), Goal Alignment (0 or 15pts), Defensive Gap (0-15pts), and Battery Level (0-10pts).</p>
+      <p class="prose-h3">Fail-Safe's</p>
+      <p class="prose-body">In the heat of a game, things go wrong. Dead Radio: if Bluetooth disconnects, the robot immediately defaults to Defender. Blind spots: if neither robot can see the ball, they stop switching roles. Battery/Fuel Rule: if a robot's battery is critically low, it is forced into Defender role.</p>
+      <div class="prose-code">
+<span class="kw">int</span> Bluetooth::<span class="fn">roleWeighting</span>(<span class="kw">const</span> SendData&amp; r) {
+  <span class="cm">// 1. Give points for being close to the ball</span>
+  <span class="kw">int</span> score = r.ballStr * <span class="val">0.4f</span>;
+
+  <span class="cm">// 2. Bonus if ball is right in front</span>
+  score += (r.ballDir &lt;= <span class="val">30</span> || r.ballDir &gt;= <span class="val">330</span>) ? <span class="val">20</span> : <span class="val">0</span>;
+
+  <span class="cm">// 3. Bonus if we are facing the goal we want to hit</span>
+  score += (r.goalAng &lt;= <span class="val">25</span> || r.goalAng &gt;= <span class="val">335</span>) ? <span class="val">15</span> : <span class="val">0</span>;
+
+  <span class="kw">return</span> score;
+}</div>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: ATTACKER -->
+  <div class="panel" id="panel-attacker">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Attack Strategy</p>
+      <h2 class="prose-h1">ATTACKER <span class="accent">STRATEGY</span></h2>
+      <div class="prose-rule"></div>
+      <div class="prose-diagram">
+        <svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="340" height="240" rx="4" fill="none" stroke="rgba(0,114,63,0.4)" stroke-width="1.5"/>
+          <line x1="10" y1="130" x2="350" y2="130" stroke="rgba(0,114,63,0.2)" stroke-width="1" stroke-dasharray="6,4"/>
+          <circle cx="180" cy="130" r="35" fill="none" stroke="rgba(0,114,63,0.2)" stroke-width="1"/>
+          <rect x="10" y="100" width="18" height="60" rx="2" fill="rgba(255,215,0,0.15)" stroke="#ffd700" stroke-width="1.5"/>
+          <text x="6" y="95" font-family="Share Tech Mono,monospace" font-size="7" fill="#ffd700">OUR</text>
+          <rect x="332" y="100" width="18" height="60" rx="2" fill="rgba(80,120,255,0.15)" stroke="#5078ff" stroke-width="1.5"/>
+          <text x="326" y="95" font-family="Share Tech Mono,monospace" font-size="7" fill="#5078ff">OPP</text>
+          <circle cx="220" cy="115" r="9" fill="rgba(255,180,0,0.25)" stroke="#ffb400" stroke-width="1.5"/>
+          <text x="213" y="102" font-family="Share Tech Mono,monospace" font-size="7" fill="#ffb400">BALL</text>
+          <rect x="190" y="138" width="22" height="22" rx="3" fill="rgba(0,114,63,0.2)" stroke="#00c85a" stroke-width="1.5"/>
+          <text x="183" y="175" font-family="Share Tech Mono,monospace" font-size="7" fill="#00c85a">ATTACKER</text>
+          <line x1="201" y1="138" x2="213" y2="126" stroke="#00c85a" stroke-width="1" stroke-dasharray="3,2"/>
+          <polygon points="213,126 208,132 218,129" fill="#00c85a"/>
+          <line x1="229" y1="115" x2="322" y2="125" stroke="#ffd700" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+          <polygon points="322,125 314,119 316,128" fill="#ffd700" opacity="0.6"/>
+        </svg>
+        <div class="prose-diag-label">Orbit behind ball → align to opponent goal → shoot</div>
+      </div>
+      <p class="prose-body">Coming Soon</p>
+    </div>
+  </div>
+
+  <!-- SOFTWARE: DEFENDER -->
+  <div class="panel" id="panel-defender">
+    <div class="prose-wrap">
+      <p class="prose-eyebrow">Software · Defend Strategy</p>
+      <h2 class="prose-h1">DEFENDER <span class="accent">STRATEGY</span></h2>
+      <div class="prose-rule"></div>
+      <div class="prose-diagram">
+        <svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+          <rect x="10" y="10" width="340" height="240" rx="4" fill="none" stroke="rgba(0,114,63,0.4)" stroke-width="1.5"/>
+          <line x1="10" y1="130" x2="350" y2="130" stroke="rgba(0,114,63,0.2)" stroke-width="1" stroke-dasharray="6,4"/>
+          <circle cx="180" cy="130" r="35" fill="none" stroke="rgba(0,114,63,0.2)" stroke-width="1"/>
+          <rect x="10" y="100" width="18" height="60" rx="2" fill="rgba(255,215,0,0.15)" stroke="#ffd700" stroke-width="1.5"/>
+          <text x="6" y="95" font-family="monospace" font-size="7" fill="#ffd700">OUR</text>
+          <rect x="332" y="100" width="18" height="60" rx="2" fill="rgba(80,120,255,0.08)" stroke="rgba(80,120,255,0.3)" stroke-width="1"/>
+          <circle cx="260" cy="105" r="9" fill="rgba(255,180,0,0.25)" stroke="#ffb400" stroke-width="1.5"/>
+          <text x="252" y="93" font-family="monospace" font-size="7" fill="#ffb400">BALL</text>
+          <rect x="40" y="119" width="22" height="22" rx="3" fill="rgba(0,114,63,0.2)" stroke="#00c85a" stroke-width="1.5"/>
+          <text x="33" y="156" font-family="monospace" font-size="7" fill="#00c85a">DEFENDER</text>
+          <path d="M 28 100 Q 55 130 28 160" fill="none" stroke="rgba(0,200,90,0.3)" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="251" y1="105" x2="72" y2="125" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+          <polygon points="72,125 80,118 78,128" fill="#ff6b6b" opacity="0.5"/>
+          <text x="130" y="108" font-family="monospace" font-size="7" fill="#ff6b6b" opacity="0.7">THREAT</text>
+          <line x1="51" y1="119" x2="51" y2="92" stroke="#00c85a" stroke-width="1" stroke-dasharray="2,2"/>
+          <polygon points="51,92 46,99 56,99" fill="#00c85a"/>
+        </svg>
+        <div class="prose-diag-label">Vector defence — stay between ball and goal at all times</div>
+      </div>
+      <p class="prose-body">Coming Soon</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const state = { primary: 'structural', software: 'bno055' };
+
+  function switchPrimary(tab) {
+    document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-primary="'+tab+'"]').classList.add('active');
+    document.querySelectorAll('.secondary-tabs').forEach(t => t.classList.remove('visible'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    state.primary = tab;
+    if (tab === 'structural') document.getElementById('panel-structural').classList.add('active');
+    else if (tab === 'electrical') document.getElementById('panel-electrical').classList.add('active');
+    else if (tab === 'software') {
+      document.getElementById('sec-software').classList.add('visible');
+      document.getElementById('panel-' + state.software).classList.add('active');
+    }
+    document.querySelector('.primary-tabs').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function switchSub(primary, panel) {
+    const bar = document.getElementById('sec-' + primary);
+    bar.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+    bar.querySelector('[data-panel="'+panel+'"]').classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + panel).classList.add('active');
+    state[primary] = panel;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.prose-wrap figure, .prose-diagram, .prose-sensor-grid, .prose-callout, .prose-table').forEach(el => {
+    el.style.opacity = '0'; el.style.transform = 'translateY(14px)';
+    el.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
+    observer.observe(el);
+  });
+</script>
+
+<script src="assets/nav-component.js"></script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>2026 Campaign — Team Hyperion · Brisbane Boys' College</title>
+  <link rel="stylesheet" href="assets/shared.css"/>
+  <style>
+    #hero {
+      position: relative; min-height: 60vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; padding: 140px 24px 80px; z-index: 1;
+    }
+    .hero-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 16px; opacity: 0; animation: fadeUp 0.7s 0.2s forwards; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 12vw, 10rem); line-height: 0.9; letter-spacing: 0.04em; color: var(--white); text-shadow: 0 0 80px rgba(0,114,63,0.25); opacity: 0; animation: fadeUp 0.7s 0.4s forwards; }
+    .hero-title .green { color: var(--green-bright); }
+    .hero-divider { width: 100px; height: 2px; background: linear-gradient(90deg, transparent, var(--green-bright), transparent); margin: 22px auto; opacity: 0; animation: fadeUp 0.7s 0.6s forwards; }
+    .hero-sub { font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; color: rgba(240,255,244,0.5); letter-spacing: 0.1em; opacity: 0; animation: fadeUp 0.7s 0.75s forwards; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── COUNTDOWN ── */
+    .countdown-wrap {
+      position: relative; z-index: 1;
+      margin-top: 36px;
+      opacity: 0;
+      animation: fadeUp 0.7s 1s forwards;
+    }
+    .countdown-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.28em;
+      color: rgba(0,255,106,0.55);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .countdown {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .cd-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(0,255,106,0.18);
+      padding: 14px 18px 10px;
+      position: relative;
+      overflow: hidden;
+      min-width: 72px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: border-color 0.3s;
+    }
+    .cd-block::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,255,106,0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cd-block::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,106,0.6), transparent);
+    }
+    .cd-block:hover { border-color: rgba(0,255,106,0.45); }
+    .cd-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      color: #00ff6a;
+      line-height: 1;
+      text-shadow: 0 0 24px rgba(0,255,106,0.55), 0 0 60px rgba(0,255,106,0.2);
+      letter-spacing: 0.04em;
+      transition: transform 0.2s ease, opacity 0.15s ease;
+    }
+    .cd-num.flip {
+      transform: translateY(-6px) scaleY(0.85);
+      opacity: 0.4;
+    }
+    .cd-unit {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 0.22em;
+      color: rgba(0,255,106,0.45);
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .cd-sep {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      color: rgba(0,255,106,0.3);
+      line-height: 1;
+      margin-bottom: 14px;
+      user-select: none;
+      animation: blink 1.2s step-start infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+    .countdown-sublabel {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.22em;
+      color: rgba(240,255,244,0.28);
+      text-transform: uppercase;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 500px) {
+      .cd-block { min-width: 56px; padding: 10px 12px 8px; }
+      .cd-sep { font-size: 1.6rem; margin-bottom: 10px; }
+    }
+
+    /* ── Rest of page ── */
+    .campaign-section { position: relative; z-index: 1; padding: 100px 48px; }
+    .campaign-section-inner { max-width: 1200px; margin: 0 auto; }
+    .campaign-section.stripe { background: var(--black2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .prose p { color: rgba(240,255,244,0.72); font-size: 1.05rem; line-height: 1.85; margin-bottom: 18px; max-width: 780px; }
+    .prose p strong { color: var(--white); font-weight: 600; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2px; margin-top: 40px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 28px 22px; text-align: center; transition: border-color 0.3s; }
+    .stat-card:hover { border-color: rgba(0,114,63,0.5); }
+    .stat-card-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--green-bright); line-height: 1; text-shadow: 0 0 20px var(--green-glow); }
+    .stat-card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-top: 8px; }
+
+    .timeline { position: relative; margin-top: 40px; padding-left: 28px; }
+    .timeline::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--green-bright), transparent); }
+    .timeline-item { position: relative; margin-bottom: 40px; opacity: 0; transform: translateX(-10px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .timeline-item.visible { opacity: 1; transform: translateX(0); }
+    .timeline-dot { position: absolute; left: -34px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--green-bright); box-shadow: 0 0 8px var(--green-bright); }
+    .timeline-date { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 6px; }
+    .timeline-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.08em; color: var(--white); margin-bottom: 8px; }
+    .timeline-body { font-size: 0.9rem; color: var(--grey); line-height: 1.65; max-width: 640px; }
+
+    .upcoming-badge {
+      display: inline-block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 0.18em;
+      color: #00ff6a;
+      border: 1px solid rgba(0,255,120,0.4);
+      padding: 5px 14px; text-transform: uppercase;
+      box-shadow: 0 0 12px rgba(0,255,120,0.15);
+      margin-bottom: 18px;
+      opacity: 0; animation: fadeUp 0.7s 0.05s forwards;
+    }
+
+    .info-panel {
+      background: var(--card-bg); border: 1px solid var(--border);
+      padding: 36px 30px; position: relative; overflow: hidden;
+    }
+    .info-panel::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green), #00ff6a, transparent);
+    }
+    .info-panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.12em; color: var(--white); margin-bottom: 6px; }
+    .info-panel-sub { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; color: #00ff6a; text-transform: uppercase; margin-bottom: 24px; }
+    .info-facts { display: flex; flex-direction: column; gap: 12px; }
+    .info-fact { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; color: rgba(240,255,244,0.65); line-height: 1.5; }
+    .info-fact-dot { width: 6px; height: 6px; border-radius: 50%; background: #00ff6a; flex-shrink: 0; margin-top: 6px; box-shadow: 0 0 6px #00ff6a; }
+
+    .upgrade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; margin-top: 40px; }
+    .upgrade-card { background: var(--card-bg); border: 1px solid var(--border); padding: 28px 22px; position: relative; overflow: hidden; transition: border-color 0.3s; }
+    .upgrade-card:hover { border-color: rgba(0,255,120,0.35); }
+    .upgrade-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #00ff6a, transparent); opacity: 0; transition: opacity 0.2s; }
+    .upgrade-card:hover::after { opacity: 1; }
+    .upgrade-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
+    .upgrade-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.08em; color: var(--white); margin-bottom: 8px; }
+    .upgrade-desc { font-size: 0.85rem; color: var(--grey); line-height: 1.6; }
+
+    @media (max-width: 900px) {
+      .two-col { grid-template-columns: 1fr; gap: 40px; }
+      .campaign-section { padding: 70px 20px; }
+    }
+    @media (max-width: 600px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section id="hero" style="background-image:url('assets/superTeam.jpeg');background-size:cover;background-position:center;background-repeat:no-repeat;">
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,10,5,0.6) 0%,rgba(5,10,5,0.85) 100%);z-index:0;"></div>
+  <div class="upcoming-badge" style="position:relative;z-index:1;">★ Upcoming — 2026</div>
+  <p class="hero-eyebrow" style="position:relative;z-index:1;">RCJ Incheon, South Korea</p>
+  <h1 class="hero-title" style="position:relative;z-index:1;">The Road to<br/><span class="green">Incheon</span></h1>
+  <div class="hero-divider" style="position:relative;z-index:1;"></div>
+  <p class="hero-sub" style="position:relative;z-index:1;">2026 RoboCup Junior World Championship · Lightweight Soccer</p>
+
+  <!-- COUNTDOWN TIMER -->
+  <div class="countdown-wrap">
+    <div class="countdown-label">Opening Ceremony — 30 June 2026</div>
+    <div class="countdown" id="countdown">
+      <div class="cd-block">
+        <div class="cd-num" id="cd-days">000</div>
+        <div class="cd-unit">Days</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-hours">00</div>
+        <div class="cd-unit">Hours</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-mins">00</div>
+        <div class="cd-unit">Mins</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-secs">00</div>
+        <div class="cd-unit">Secs</div>
+      </div>
+    </div>
+    <div class="countdown-sublabel">Songdo Convensia · Incheon · South Korea</div>
+  </div>
+</section>
+
+<!-- INTRO / OVERVIEW -->
+<section class="campaign-section">
+  <div class="campaign-section-inner">
+    <div class="two-col">
+      <div class="prose">
+        <div class="bbc-stripe" style="margin-bottom:16px;">Brisbane Boys' College · RoboCup Junior 2026</div>
+        <p class="section-label">Our Mission</p>
+        <h2 class="section-title">BACK ON THE <span class="accent">WORLD STAGE</span></h2>
+        <div class="green-line"></div>
+        <p>After an incredible 2025 campaign in Salvador, Brazil — where we placed <strong>14th individually</strong> and earned <strong>1st in the Lightweight SuperTeam</strong> — Team Hyperion is preparing for an even more ambitious challenge: the <strong>2026 RoboCup Junior World Championship in Incheon, South Korea</strong>.</p>
+        <p>We returned to Australia from Salvador and went <strong>undefeated at the 2025 Australian National Championship</strong>, reclaiming our country's qualification spot and proving we are still the benchmark for Lightweight Soccer in Australia.</p>
+        <p>Now the hard work begins again. We are upgrading our hardware, refining our strategy, and building on everything we learned in Salvador. Incheon is where we take the next step.</p>
+        <a href="achievements.html" class="btn-outline" style="display:inline-block;margin-top:8px;">→ View Our Full History</a>
+      </div>
+      <div class="info-panel">
+        <div class="info-panel-title">Incheon, South Korea</div>
+        <div class="info-panel-sub">2026 RoboCup Junior Worlds · 🇰🇷</div>
+        <div class="info-facts">
+          <div class="info-fact"><div class="info-fact-dot"></div><span>One of South Korea's most modern cities — a global technology and logistics hub</span></div>
+          <div class="info-fact"><div class="info-fact-dot"></div><span>Home of Incheon International Airport, one of the busiest in the world</span></div>
+          <div class="info-fact"><div class="info-fact-dot"></div><span>The 2026 RoboCup Junior World Championship will draw teams from across the globe</span></div>
+          <div class="info-fact"><div class="info-fact-dot"></div><span>Hyperion qualified via an undefeated run at the 2025 Australian Nationals</span></div>
+          <div class="info-fact"><div class="info-fact-dot"></div><span>Our goal: improve on our 14th-place individual result from Salvador 2025</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="stat-grid" style="margin-top:72px;">
+      <div class="stat-card"><div class="stat-card-num">1ST</div><div class="stat-card-label">2025 Nationals — Undefeated</div></div>
+      <div class="stat-card"><div class="stat-card-num">14TH</div><div class="stat-card-label">2025 Worlds — Individual</div></div>
+      <div class="stat-card"><div class="stat-card-num">1ST</div><div class="stat-card-label">2025 Worlds — SuperTeam</div></div>
+      <div class="stat-card"><div class="stat-card-num">2026</div><div class="stat-card-label">Incheon, South Korea</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- UPGRADES & IMPROVEMENTS -->
+<section class="campaign-section stripe">
+  <div class="campaign-section-inner">
+    <p class="section-label">Development</p>
+    <h2 class="section-title">WHAT WE'RE <span class="accent">IMPROVING</span></h2>
+    <div class="green-line"></div>
+    <p class="prose" style="margin-top:16px;max-width:700px;color:rgba(240,255,244,0.6);font-family:'Share Tech Mono',monospace;font-size:0.82rem;letter-spacing:0.06em;">
+      Every World Championship teaches us something new. We are taking every lesson from Salvador and turning it into a concrete upgrade for Incheon.
+    </p>
+    <div class="upgrade-grid">
+      <div class="upgrade-card">
+        <span class="upgrade-icon">⚙️</span>
+        <div class="upgrade-title">Mechanical</div>
+        <div class="upgrade-desc">Refined chassis, improved kicker mechanism, and updated dribbling system for tighter ball control under pressure.</div>
+      </div>
+      <div class="upgrade-card">
+        <span class="upgrade-icon">⚡</span>
+        <div class="upgrade-title">Electrical</div>
+        <div class="upgrade-desc">Upgraded PCB design with lower noise floor, improved power distribution, and updated motor driver configuration for faster response.</div>
+      </div>
+      <div class="upgrade-card">
+        <span class="upgrade-icon">🧠</span>
+        <div class="upgrade-title">Software</div>
+        <div class="upgrade-desc">Enhanced ball-tracking algorithms, improved role-switching logic between attacker and defender, and faster sensor fusion pipeline.</div>
+      </div>
+      <div class="upgrade-card">
+        <span class="upgrade-icon">📡</span>
+        <div class="upgrade-title">Communication</div>
+        <div class="upgrade-desc">Improved Bluetooth inter-robot communication for better coordination, with faster handshake times and more reliable packet delivery.</div>
+      </div>
+      <div class="upgrade-card">
+        <span class="upgrade-icon">👁️</span>
+        <div class="upgrade-title">Vision</div>
+        <div class="upgrade-desc">Camera system tuning for varied lighting conditions — a key lesson from international competition where court lighting differed from training.</div>
+      </div>
+      <div class="upgrade-card">
+        <span class="upgrade-icon">🎯</span>
+        <div class="upgrade-title">Strategy</div>
+        <div class="upgrade-desc">New offensive patterns and set-piece positioning built on analysis of our Salvador matches and footage from top-ranking international teams.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE / ROAD TO INCHEON -->
+<section class="campaign-section">
+  <div class="campaign-section-inner">
+    <p class="section-label">Schedule</p>
+    <h2 class="section-title">ROAD TO <span class="accent">INCHEON</span></h2>
+    <div class="green-line"></div>
+    <div class="timeline" style="margin-top:48px;">
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Late 2025 — Post-Nationals</div>
+        <div class="timeline-title">Post-Season Analysis & Planning</div>
+        <div class="timeline-body">Deep-dive review of all Salvador and Nationals match footage. Identify hardware bottlenecks, software edge cases, and strategic gaps. Set development priorities for the 2026 build cycle.</div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Late 2025 – Early 2026</div>
+        <div class="timeline-title">Robot Redesign & Prototyping</div>
+        <div class="timeline-body">Design and manufacture upgraded hardware components — new chassis, kicker, and PCB revisions. Parallel software development begins on the new strategy framework.</div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Mid 2026</div>
+        <div class="timeline-title">Integration & Testing</div>
+        <div class="timeline-body">Full system integration testing. Stress-test all new components under match conditions. Iterate rapidly on any hardware or software issues discovered during testing.</div>
+      </div>
+
+      <div class="timeline-item" style="border-left: 1px solid rgba(0,255,120,0.3); padding-left: 20px; background: rgba(0,255,120,0.03);">
+        <div class="timeline-dot" style="background:#00ff6a;box-shadow:0 0 12px #00ff6a;"></div>
+        <div class="timeline-date" style="color:#00ff6a;">2026 · World Championship</div>
+        <div class="timeline-title">🇰🇷 Incheon, South Korea</div>
+        <div class="timeline-body">The main event. Team Hyperion competes on the world stage at the 2026 RoboCup Junior World Championship. Representing Brisbane Boys' College and Australia.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SOUTH KOREA SECTION -->
+<section class="campaign-section stripe">
+  <div class="campaign-section-inner">
+    <div class="two-col">
+      <div class="prose">
+        <p class="section-label">The Destination</p>
+        <h2 class="section-title">INCHEON <span class="accent">SOUTH KOREA</span></h2>
+        <div class="green-line"></div>
+        <p>Incheon is a city at the frontier of technology and innovation — an ideal backdrop for the world's premier robotics student competition. Located just west of Seoul, Incheon is South Korea's third-largest city and a gateway to one of Asia's most technologically advanced nations.</p>
+        <p>For Team Hyperion, competing in South Korea represents more than just another international trip. South Korea has a world-renowned robotics and engineering culture, and going back stronger from our 2025 experience means everything to us.</p>
+        <p>We are grateful to <strong>Brisbane Boys' College</strong> and our families for making this journey possible, and we are committed to representing them with the same hunger and professionalism we brought to Salvador.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:var(--card-bg);border:1px solid var(--border);padding:28px 24px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00ff6a,transparent);"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:#00ff6a;text-transform:uppercase;margin-bottom:10px;">Mission Statement</div>
+          <p style="color:rgba(240,255,244,0.8);font-size:1rem;line-height:1.75;font-style:italic;margin:0;">"We went to Salvador to compete. We go to Incheon to win."</p>
+          <p style="color:rgba(240,255,244,0.4);font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;margin-top:12px;">— Team Hyperion, 2026</p>
+        </div>
+        <div style="background:var(--card-bg);border:1px solid var(--border);padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:2px;">
+          <div style="text-align:center;padding:16px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--green-bright);line-height:1;">🇰🇷</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:var(--grey);text-transform:uppercase;margin-top:6px;">South Korea</div>
+          </div>
+          <div style="text-align:center;padding:16px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--green-bright);line-height:1;">🇦🇺</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:var(--grey);text-transform:uppercase;margin-top:6px;">Australia</div>
+          </div>
+        </div>
+        <a href="team.html" class="btn-primary" style="text-align:center;">→ Meet the Team</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ── COUNTDOWN TIMER ── */
+(function() {
+  // Opening Ceremony: 30 June 2026, 09:00 KST (UTC+9) = 00:00 UTC
+  const TARGET = new Date('2026-06-30T00:00:00Z').getTime();
+
+  const elDays  = document.getElementById('cd-days');
+  const elHours = document.getElementById('cd-hours');
+  const elMins  = document.getElementById('cd-mins');
+  const elSecs  = document.getElementById('cd-secs');
+
+  function pad(n, len) { return String(n).padStart(len, '0'); }
+
+  function flash(el) {
+    el.classList.add('flip');
+    setTimeout(() => el.classList.remove('flip'), 220);
+  }
+
+  let prevSecs = -1, prevMins = -1, prevHours = -1, prevDays = -1;
+
+  function tick() {
+    const now  = Date.now();
+    const diff = Math.max(0, TARGET - now);
+
+    const totalSecs  = Math.floor(diff / 1000);
+    const secs       = totalSecs % 60;
+    const totalMins  = Math.floor(totalSecs / 60);
+    const mins       = totalMins % 60;
+    const totalHours = Math.floor(totalMins / 60);
+    const hours      = totalHours % 24;
+    const days       = Math.floor(totalHours / 24);
+
+    if (secs  !== prevSecs)  { flash(elSecs);  elSecs.textContent  = pad(secs, 2);  prevSecs  = secs;  }
+    if (mins  !== prevMins)  { flash(elMins);  elMins.textContent  = pad(mins, 2);  prevMins  = mins;  }
+    if (hours !== prevHours) { flash(elHours); elHours.textContent = pad(hours, 2); prevHours = hours; }
+    if (days  !== prevDays)  { flash(elDays);  elDays.textContent  = pad(days, 3);  prevDays  = days;  }
+
+    if (diff === 0) {
+      document.querySelector('.countdown-label').textContent = '🎉 The Opening Ceremony is NOW';
+    }
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ── Timeline scroll animation ── */
+const items = document.querySelectorAll('.timeline-item');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+items.forEach(el => obs.observe(el));
+
+/* ── Scroll fade-in for cards ── */
+const cardObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.stat-card, .upgrade-card, .info-panel').forEach(el => {
+  el.style.opacity='0'; el.style.transform='translateY(18px)';
+  el.style.transition='opacity 0.5s ease, transform 0.5s ease';
+  cardObs.observe(el);
+});
+</script>
+
+<script src="assets/nav-component.js"></script>
+</body>
+</html>

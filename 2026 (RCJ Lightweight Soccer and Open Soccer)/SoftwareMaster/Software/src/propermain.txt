@@ -1,0 +1,450 @@
+#include <Arduino.h>
+#include <Drive_system.h>
+#include <Debug.h>
+#include <TSSP_system.h>
+#include <Light_system.h>
+#include <Adafruit_BNO055.h>
+#include <Camera.h>
+#include <Bluetooth.h>
+#include <Kicker.h>
+#include <Dribbler.h>
+#include <Common.h>
+#include <LRF.h> 
+
+enum RobotState {
+    STATE_IDLE,
+    STATE_CALIBRATE,
+    STATE_TEST,
+    STATE_ATTACK,
+    STATE_ATTACK_OPEN,
+    STATE_DEFEND,
+    STATE_DEFEND_OPEN,
+    STATE_LINE_AVOID
+};
+
+enum DefendSubState {
+    LWDEFEND_VECTOR,
+    LWDEFEND_SURGE,
+    LWDEFEND_LOCALISE
+};
+
+enum OpenAttackSubState {
+    ATTACK_ORBIT,
+    ATTACK_PASS,
+    ATTACK_HIDE
+};
+
+enum OpenDefendSubState {
+    DEFEND_VECTOR,
+    DEFEND_SURGING,
+    DEFEND_WALL_KICK,
+    DEFEND_ORBIT
+};
+
+VoltageDivider battery(ROBOT_VD_PIN, ROBOT_VOLTAGE_STABALISER);
+DriveSystem motors;
+LRFProcessor lrf;
+Adafruit_BNO055 bno(55, BNO055_ADDRESS_B, &Wire);
+TsspSystem tssp;
+LightSystem ls;
+Camera cam;
+Bluetooth bt;
+Kicker kicker;
+Dribbler dribbler;
+Common com;
+
+Timer batteryTimer(5000000);
+Timer wallKickTimer(1500000);
+
+PID correction(KP_IMU, 0.0, KD_IMU, 100.0);
+PID goalTrack(KP_GOALT, 0.0, KD_GOALT, 100.0);
+PID hozt(KP_HOZT, 0.0, KD_HOZT);
+PID vert(KP_VERT, 0.0, KD_VERT);
+PID localise(KP_LOC, KD_LOC, 0.0, 200.0);
+PID wallAngle(KP_IMU, 0.0, KD_IMU, 100.0);
+PID lineAvoid(KP_LAV, 0.0, KD_LAV, 100.0);
+
+RobotState currentBehaviour = STATE_IDLE;
+DefendSubState defendMode = LWDEFEND_VECTOR;
+OpenAttackSubState openAttackMode = ATTACK_ORBIT;
+OpenDefendSubState openDefendMode = DEFEND_VECTOR;
+sensors_event_t bearing;
+
+bool isSurging = false;
+
+void setup() {
+    Serial.begin(9600);
+    Serial1.begin(115200);
+    motors.init();
+    tssp.init();
+    ls.init();
+    cam.init();
+    kicker.init();
+    
+    pinMode(CALIBRATION_SWITCH, INPUT);
+    pinMode(GOAL_TRACK_SWITCH, INPUT);
+
+    while (!bno.begin(OPERATION_MODE_IMUPLUS)) {
+        Serial.println("No BNO055 detected.");
+        delay(1000);
+    }
+    bno.setExtCrystalUse(true);
+    
+    currentBehaviour = STATE_IDLE;
+}
+
+void loop() {
+    // Read all Sensors
+    bno.getEvent(&bearing);
+    if(OPEN) {
+        lrf.update(Serial1, bearing.orientation.x);
+    } else {
+        tssp.update();
+    }
+    cam.update(digitalRead(GOAL_TRACK_SWITCH));
+    bt.update((OPEN?cam.ball().angle():tssp.ball().dir()), 
+              (OPEN?cam.ball().dist():tssp.ball().str()), 
+              cam.attack().angle(), cam.defend().dist(), 
+              0.0f, false, OPEN?lrf.get_self_x():cam.robot().x(), 
+              OPEN?lrf.get_self_y():cam.robot().y());
+    ls.update();
+
+    if (DRIBBLER_ENABLED && (tssp.ball().str() > BALL_CLOSE_STR)) {
+        dribbler.run(100);
+    }
+    // Define Movement Values
+    float _dir = 0;
+    float _spd = 0;
+    float _cor = -correction.update(com.normaliseAngle180(bearing.orientation.x), 0.0);
+    
+    // Define which state we are in.
+    if (TEST_MODE) {
+        // If you want to test, test mode.
+        currentBehaviour = STATE_TEST;
+    } else if (digitalRead(CALIBRATION_SWITCH)) {
+        // If calibration switch is flicked, calibrate.
+        currentBehaviour = STATE_CALIBRATE;
+    } else if (ls.get_line_dir() != -1) {
+        // If seeing the line, then line avoid.
+        currentBehaviour = STATE_LINE_AVOID;
+    } else if (bt.get_role()) {
+        // If Bluetooth says you are attacking, attack.
+        currentBehaviour = OPEN?STATE_ATTACK_OPEN:STATE_ATTACK;
+    } else {
+        // If Bluetooth says you aren't attacking, defend.
+        currentBehaviour = OPEN?STATE_DEFEND_OPEN:STATE_DEFEND;
+    }
+
+    switch (currentBehaviour) {
+        case STATE_TEST:
+        // Test area for debugging.
+            _spd = 0;
+            break;
+
+        case STATE_CALIBRATE:
+        // Calibrate logic for when calibrate switch is flicked.
+            // Reset Compass
+            bno.setMode(OPERATION_MODE_CONFIG);
+            delay(20);
+            bno.setMode(OPERATION_MODE_IMUPLUS);
+            break;
+
+        case STATE_LINE_AVOID:
+        // Line avoid logic for when the robot sees the line.
+            _spd = -lineAvoid.update(ls.get_line_state(), 0.0);
+            _dir = fmod(ls.get_line_dir() + 180.0, 360);
+            break;
+
+        case STATE_ATTACK:
+        // Lightweight Attack Logic
+            if(tssp.ball().str() != 0) {
+                // If you see the ball, orbit.
+                _dir = tssp.move().dir();
+                _spd = tssp.move().spd();
+                if (GOAL_TRACKING_ENABLED) {
+                    // Goal tracking towards the attacking goal.
+                    _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
+                    if ((abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && tssp.ball().str() > BALL_CLOSE_STR) {
+                        // If ball is close and you are facing the goal, kick.
+                        kicker.fire();
+                    }
+                }
+            } else {
+                // If you can't see the goal, localise to the center of the field.
+                cam.localise_to(0, 0);
+                _dir = cam.robot().move_angle();
+                _spd = -localise.update(cam.robot().move_mag(), 0.0);
+            }
+            break;
+
+        case STATE_DEFEND:
+            if(tssp.ball().str() >= BALL_CLOSE_STR) {
+                if(bt.get_other_connected()) {
+                    defendMode = LWDEFEND_SURGE;
+                } else {
+                    defendMode = LWDEFEND_SURGE;
+                }
+            } else if(tssp.ball().str() != 0) {
+                defendMode = LWDEFEND_VECTOR;
+            } else {
+                defendMode = LWDEFEND_LOCALISE;
+            }
+
+            switch (defendMode) {
+                case(LWDEFEND_VECTOR): {
+                    float vertVect;
+                    if (ls.get_line_state() == 0) {
+                       if (cam.defend().visible()) {
+                            vertVect = (cam.defend().dist() <= 40) ? 100 : -100;
+                       } else {
+                            vertVect = -100;
+                       }
+                    } else {
+                        vertVect = vert.update(ls.get_line_state(), 1.6);
+                    }
+                    
+
+                    float hoztVectAng = (tssp.ball().str() != 0) ? 
+                                            com.normaliseAngle180(tssp.ball().dir()) : 
+                                            -com.normaliseAngle180(bearing.orientation.x);
+                    float hoztVect = -hozt.update(hoztVectAng, 0.0f);
+                    // Vector Summation of Horizontal and Vertical Vectors
+                    _dir = fmod(atan2f(hoztVect, vertVect) * RAD_TO_DEG, 360);
+                    _spd = sqrtf(powf(vertVect, 2) + powf(hoztVect, 2));
+                    // Goal Track away from defending goal.
+                    _cor = goalTrack.update(com.normaliseAngle180(fmod(cam.defend().angle() + 180.0f, 360.0f)), 0.0f);
+                    if (tssp.ball().str() > BALL_CLOSE_STR) {
+                        // If you have the ball, shoot off the wall and try and get it to the opposite end of the field.
+                        openDefendMode = DEFEND_WALL_KICK;
+                        wallKickTimer.update();
+                    }
+                    break;
+                }
+                case(LWDEFEND_SURGE):
+                    _spd = 100;
+                    _dir = tssp.ball().dir();
+                    if (GOAL_TRACKING_ENABLED) {
+                        // Goal tracking towards the attacking goal.
+                        _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
+                        if ((abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && tssp.ball().str() > BALL_CLOSE_STR) {
+                            // If ball is close and you are facing the goal, kick.
+                            kicker.fire();
+                        }
+                    }
+                    break;
+                case(LWDEFEND_LOCALISE):
+                    // makes the robot localise to the nearest neutral point
+                    cam.localise_to(40*((cam.robot().x() < 0) ? -1 : 1), 
+                                    65*((cam.robot().y() < 0) ? -1 : 1));
+                    _dir = cam.robot().move_angle();
+                    _spd = cam.robot().move_mag();
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+        case STATE_ATTACK_OPEN:
+            if(lrf.get_self_y() < 0 && cam.ball().dist() > BALL_CLOSE_STR) {
+                // If we are in the back half of the field, and we have the ball, start hiding.
+                openAttackMode = ATTACK_HIDE;
+            }
+            // Exit condition: once we reach y pos 900
+            if(openAttackMode == ATTACK_HIDE && lrf.get_self_y() >= 900) {
+                // If you are currently hiding the ball, and you reach y-pos 900mm, stop hiding and check if facing goal
+                if(abs(com.normaliseAngle180(cam.attack().angle())) < 10.0) {
+                    kicker.fire();
+                    openAttackMode = ATTACK_ORBIT;
+                }
+            }
+            if (cam.ball().dist() != 0 && GOAL_TRACKING_ENABLED) {
+                if(openAttackMode == ATTACK_HIDE) {
+                    // Calculate and assign direction vector (for up the field)
+                    _dir = fmod(360.0f - bearing.orientation.x, 360.0f);
+                    // Max speed of robot is 90.
+                    _spd = 90;
+                    if(lrf.get_self_y() >= 900) {
+                        // We are far enough up the field to shoot, therefore turn towards the goal
+                        _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
+                    } else {
+                        // Face away from the goal as you move up the field.
+                        _cor = -goalTrack.update(com.normaliseAngle180(com.normaliseAngle180(cam.attack().angle()) + 180.0f), 0.0);
+                    }
+                } else if (openAttackMode == ATTACK_PASS) {
+                    // Calculate the direction and distance needed to pass to teammate.
+                    lrf.calculate_wall_score(bt.get_other_x(), bt.get_other_y());
+                    if (abs(com.normaliseAngle180(bearing.orientation.x - lrf.get_wall_dir())) < 5.0 && tssp.ball().str() > BALL_CLOSE_STR) {
+                        // If the ball is close, and you are facing the direction of the wall that is needed, kick and then set state to orbit.
+                        kicker.fire();
+                        openAttackMode = ATTACK_ORBIT; 
+                    }
+                    if (wallKickTimer.time_has_passed_no_update()) {
+                        // If you have been trying to face the wall for too long, switch back to regular orbit state.
+                        openAttackMode = ATTACK_ORBIT;
+                    } else {
+                        // If it hasn't been too long trying to face the wall, keep trying to face the wall.
+                        _cor = wallAngle.update(com.normaliseAngle180(lrf.get_wall_dir() - bearing.orientation.x), 0.0);
+                        _spd = BASE_SPEED;
+                    }
+                } else if (openAttackMode == ATTACK_ORBIT) {
+                    // If orbiting, get the orbit angle and speed.
+                    _dir = cam.ball().move_angle();
+                    _spd = cam.ball().move_speed();
+                    // Goal tracking towards attacking goal.
+                    _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
+                    if (cam.ball().dist() > BALL_CLOSE_STR && abs(com.normaliseAngle180(lrf.get_closest_obstacle())) < 20) {
+                        // If there is a robot infront of you and you have the ball, switch to kicking off wall to pass strategy- and start the turning toward wall timer.
+                        openAttackMode = ATTACK_PASS;
+                        wallKickTimer.update();
+                    }
+                }
+                if (openAttackMode != ATTACK_PASS && (abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && cam.ball().dist() > BALL_CLOSE_STR) {
+                    // If you aren't kicking off the wall, and you have the ball, and you are generally facing the goal, kick.
+                    kicker.fire();
+                }
+            } else {
+                // If no ball detected, localise to center of the field.
+                lrf.localise_to(0, 0);
+                _dir = lrf.get_loc_dir();
+                _spd = lrf.get_loc_mag();
+            }
+            break;
+
+        case STATE_DEFEND_OPEN:
+            _spd = 0;
+
+            if (isSurging) {
+                if (cam.ball().dist() < BALL_CLOSE_STR || cam.ball().dist() != 0) {
+                // If ball is far away or lost, stop surging
+                    isSurging = false;
+                }
+            }
+
+            if(wallKickTimer.time_has_passed_no_update()) {
+                // Only update our state if we aren't already locked into a certain state.
+                if (cam.ball().angle() < 310 && cam.ball().angle() > 130) {
+                    // Ball is behind, we need to get around it
+                    openDefendMode = DEFEND_ORBIT;
+                } else if (cam.ball().dist() >= BALL_CLOSE_STR || isSurging) {
+                    // If ball is close, and or we are already surging, we determine HOW to get it out of our area.
+                    if((abs(com.normaliseAngle180(lrf.get_closest_obstacle())) < 20.0)) {
+                        // If there is something blocking our path infront of us, shoot off wall.
+                        openDefendMode = DEFEND_WALL_KICK;
+                        wallKickTimer.update();
+                    } else {
+                        // If there is nothing blocking our path infront of us, shoot towards the goal.
+                        openDefendMode = DEFEND_SURGING;
+                        isSurging = true;
+                    }
+                } else {
+                    // Default defensive positioning
+                    openDefendMode = DEFEND_VECTOR;
+                }
+            }
+ 
+            switch (openDefendMode) {
+                case DEFEND_ORBIT:
+                    // To get around the ball, orbit.
+                    _dir = cam.ball().move_angle();
+                    _spd = cam.ball().move_speed();
+                    break;
+
+                case DEFEND_SURGING:
+                    isSurging = true;
+                    // Handle Surge Toggle
+                    if (cam.ball().dist() < BALL_CLOSE_STR) {
+                        // If ball is far away, stop surging.
+                        isSurging = false;
+                        openDefendMode = DEFEND_VECTOR;
+                    } else {
+                        // If ball is close, keep surging.
+                        isSurging = true;
+                        if ((cam.ball().angle() < 30 || cam.ball().angle() > 330) && 
+                            (cam.defend().dist() <= (SP_DEFEND_VERT + 8.0))) {
+                            // If ball is infront, and you're not too far out of the goal, surge speed towards ball.
+                            _dir = cam.ball().angle();
+                            _spd = SURGE_SPEED;
+                            if (GOAL_TRACKING_ENABLED && cam.attack().visible()) {
+                                // Goal track away from defending goal.
+                                _cor = goalTrack.update(com.normaliseAngle180(fmod(cam.attack().angle() + 180.0f, 360.0f)), 0.0f);
+                            }
+                        }
+                    }
+                    break;
+                
+                case DEFEND_WALL_KICK:
+                    lrf.calculate_wall_score(0, 1095);
+                    if (abs(com.normaliseAngle180(bearing.orientation.x - lrf.get_wall_dir())) < 5.0 && cam.ball().dist() > BALL_CLOSE_STR) {
+                        // If the ball is close, and you are facing the direction of the wall that is needed, kick and then set state to vector defence.
+                        kicker.fire();
+                        openDefendMode = DEFEND_VECTOR; 
+                    }
+                    if (wallKickTimer.time_has_passed_no_update()) {
+                        // If you have been trying to face the wall for too long, switch back to regular orbit state.
+                        openDefendMode = DEFEND_VECTOR;
+                    } else {
+                        // If it hasn't been too long trying to face the wall, keep trying to face the wall.
+                        _cor = wallAngle.update(com.normaliseAngle180(lrf.get_wall_dir() - bearing.orientation.x), 0.0);
+                        _spd = BASE_SPEED;
+                    }
+                    break;
+
+                case DEFEND_VECTOR:
+                    if (cam.defend().visible()) {
+                        // Calculate a vertical vector based on distance away from goal
+                        float vertVect = vert.update(cam.defend().dist() - SP_DEFEND_VERT, 0);
+                        // Calculate a horizontal vector based on the ball angle and the imu heading.
+                        float hoztVectAng = (cam.ball().dist() != 0) ? 
+                                            com.normaliseAngle180(cam.ball().angle()) : 
+                                            -com.normaliseAngle180(bearing.orientation.x);
+                        float hoztVect = -hozt.update(hoztVectAng, 0.0f);
+
+                        // Vector Summation of Horizontal and Vertical Vectors
+                        _dir = fmod(atan2f(hoztVect, vertVect) * RAD_TO_DEG, 360);
+                        _spd = sqrtf(powf(vertVect, 2) + powf(hoztVect, 2));
+                        // Goal Track away from defending goal.
+                        _cor = goalTrack.update(com.normaliseAngle180(fmod(cam.defend().angle() + 180.0f, 360.0f)), 0.0f);
+                        if (cam.ball().dist() > BALL_CLOSE_STR) {
+                            // If you have the ball, shoot off the wall and try and get it to the opposite end of the field.
+                            openDefendMode = DEFEND_WALL_KICK;
+                            wallKickTimer.update();
+                        }
+                    } else {
+                        // If no ball is seen, localise to the center of the field.
+                        lrf.localise_to(0, 0);
+                        _dir = lrf.get_loc_dir();
+                        _spd = lrf.get_loc_mag();
+                    }
+                    break;
+            }
+
+            if (GOAL_TRACKING_ENABLED && abs(com.normaliseAngle180(cam.attack().angle())) < 8.0 && 
+                cam.ball().dist() > BALL_CLOSE_STR) {
+                // If generally facing goal, and you have the ball, fire kicker.
+                kicker.fire();
+            }
+            break;
+
+        default:
+            // If nothing is happening (somehow), just don't move.
+            _spd = 0;
+            break;
+    }
+    if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
+        // Battery is healthy: keep resetting the timer so it never "passes"
+        batteryTimer.update(); 
+        motors.run(_spd, _dir, _cor);
+    } 
+    else {
+        // Battery is LOW: stop updating the timer. 
+        // If it stays low long enough for the timer to expire...
+        if (batteryTimer.time_has_passed_no_update()) {
+            // Low power spin
+            motors.run(0, 0, 20); 
+        } else {
+            // It's low, but hasn't been low for 5 seconds yet.
+            // Continue running normally to avoid stopping on brief voltage sags.
+            motors.run(_spd, _dir, _cor);
+        }
+    }
+}

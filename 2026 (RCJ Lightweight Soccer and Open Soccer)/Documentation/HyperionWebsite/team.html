@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Team — Team Hyperion · Brisbane Boys' College</title>
+  <link rel="stylesheet" href="assets/shared.css"/>
+  <style>
+    .page-hero { position: relative; z-index: 1; padding: 140px 48px 60px; text-align: center; border-bottom: 1px solid var(--border); }
+    .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, rgba(0,114,63,0.1) 0%, transparent 65%); pointer-events: none; }
+    #members { position: relative; z-index: 1; padding: 80px 48px; }
+    .members-list { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2px; }
+    .member-row { display: grid; grid-template-columns: 260px 1fr; background: var(--card-bg); border: 1px solid var(--border); transition: border-color 0.3s; overflow: hidden; }
+    .member-row:hover { border-color: rgba(0,114,63,0.45); }
+    .member-photo-side { position: relative; overflow: hidden; background: rgba(0,114,63,0.05); display: flex; align-items: center; justify-content: center; }
+    .member-photo-side img { width: 100%; height: 100%; min-height: 280px; object-fit: cover; object-position: top center; filter: grayscale(20%) contrast(1.05); transition: filter 0.4s, transform 0.4s; }
+    .member-row:hover .member-photo-side img { filter: grayscale(0%) contrast(1.08); transform: scale(1.03); }
+    .member-photo-side .avatar-fallback { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--green-bright); opacity: 0.5; }
+    .member-photo-side::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 70%, var(--black2)); pointer-events: none; }
+    .member-info { padding: 36px 40px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+    .member-info::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--green-bright); opacity: 0.6; }
+    .member-num { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 8px; }
+    .member-name { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.06em; color: var(--white); line-height: 1; margin-bottom: 6px; }
+    .member-role { font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; letter-spacing: 0.2em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 20px; }
+    .member-bio { font-size: 0.97rem; color: rgba(240,255,244,0.68); line-height: 1.75; max-width: 560px; margin-bottom: 20px; }
+    .member-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .member-tag { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--green-bright); border: 1px solid rgba(0,114,63,0.35); padding: 4px 10px; text-transform: uppercase; }
+    #mentor { position: relative; z-index: 1; padding: 0 48px 80px; }
+    .mentor-box { max-width: 1100px; margin: 0 auto; background: rgba(0,114,63,0.05); border: 1px solid var(--border); border-left: 3px solid var(--green-bright); padding: 32px 36px; display: flex; align-items: center; gap: 28px; }
+    .mentor-icon { font-size: 2.5rem; }
+    .mentor-label { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--green-bright); text-transform: uppercase; margin-bottom: 6px; }
+    .mentor-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; letter-spacing: 0.08em; color: var(--white); }
+    .mentor-text { font-size: 0.9rem; color: var(--grey); margin-top: 4px; }
+    .page-hero-logo { height: 56px; width: auto; display: block; margin: 0 auto 24px; filter: brightness(1.1) drop-shadow(0 0 12px rgba(0,114,63,0.35)); }
+    @media (max-width: 800px) { .member-row { grid-template-columns: 1fr; } .member-photo-side { height: 220px; } .member-photo-side img { min-height: 220px; } .member-photo-side::after { background: linear-gradient(to bottom, transparent 70%, var(--black2)); } #members, #mentor { padding: 60px 20px; } }
+  </style>
+</head>
+<body>
+<div class="page-hero">
+  <img src="assets/schoolLogo.png" alt="Brisbane Boys' College" class="page-hero-logo fade-up delay-1"/>
+  <p class="section-label fade-up delay-1">Brisbane Boys' College</p>
+  <h1 class="section-title fade-up delay-2">THE <span class="accent">CREW</span></h1>
+  <div class="green-line" style="margin:16px auto 24px;"></div>
+  <p class="fade-up delay-3" style="font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:0.18em;color:var(--grey);text-transform:uppercase;">Four students. One mission.</p>
+</div>
+<section id="mentor">
+  <div class="mentor-box">
+    <div class="mentor-icon">🎓</div>
+    <div>
+      <div class="mentor-label">School · Brisbane Boys' College</div>
+      <div class="mentor-name">Representing BBC Since 2021</div>
+      <div class="mentor-text">Members of Team Hyperion proudly represent Brisbane Boys' College at the Robocup Junior Competition. Our team is supported by the school's robotics program and a tradition of academic and co-curricular excellence.</div>
+    </div>
+  </div>
+</section>
+<section id="members">
+  <div class="members-list">
+    <div class="member-row">
+      <div class="member-photo-side"><img src="assets/member1.jpg" alt="Sam Garg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="avatar-fallback" style="display:none">SG</div></div>
+      <div class="member-info">
+        <div class="member-name">Sam Garg</div>
+        <div class="member-role">Software · Strategy</div>
+        <p class="member-bio">Sam began his robotics journey in 2018. Over the years, he has developed proficiency in a wide range of programming languages, including EV3 and Spike block coding, EV3 MicroPython, Spike Python, RobotC, and C++ within the Arduino framework. His passion and dedication to robotics have been demonstrated through consistent participation in RoboCup Junior Australia (RCJA) competitions. Notable achievements include placing 4th in both Queensland State and National OnStage (2021), 2nd at State and 6th nationally in the Standard Soccer League (2023), and 3rd at State and 2nd nationally in the Lightweight Soccer League (2024). In 2025, as member of Team Hyperion, Sam helped the team to a great season, achieving 2nd place at the Queensland State Competition, 1st place at the National Lightweight Soccer League, and representing Australia at the RoboCup Junior International Competition in Salvador, where the team placed 14th individually and 1st in the Lightweight Soccer SuperTeam. These results highlight Sam's leadership, technical innovation, and ongoing commitment to excellence in robotics.</p>
+        <div class="member-tags"><span class="member-tag">C++</span><span class="member-tag">Python</span><span class="member-tag">Strategy</span></div>
+      </div>
+    </div>
+    <div class="member-row">
+      <div class="member-photo-side"><img src="assets/member2.jpg" alt="Matthew Adams" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="avatar-fallback" style="display:none">MA</div></div>
+      <div class="member-info">
+        <div class="member-name">Matthew Adams</div>
+        <div class="member-role">Hardware · Electrical</div>
+        <p class="member-bio">Matthew's robotics journey began in 2018. He quickly developed foundational skills in basic coding and problem-solving using LEGO EV3 and NXT, which soon expanded to include CAD design and modelling, as well as the ability to read electrical schematics and design and solder PCBs while understanding their functionality. His dedication to robotics is reflected in his continuous learning and commitment. Matthew has actively participated in numerous RoboCup Junior Australia (RCJA) competitions, achieving outstanding results including 4th place in both State and National OnStage (2021), 3rd in the Lightweight Soccer division at States (2024), and 2nd nationally that same year. In 2025, as a member of Team Hyperion, he helped secure 2nd place at the Queensland State Competition, 1st place nationally, and an exceptional performance at the RoboCup Junior International Competition in Salvador, achieving 14th place individually and 1st place in the Lightweight Soccer SuperTeam division. These accomplishments reflect Matthew's expertise, leadership, and continued drive for excellence within the robotics community.</p>
+        <div class="member-tags"><span class="member-tag">PCB Design</span><span class="member-tag">CAD Design</span><span class="member-tag">Electronics</span></div>
+      </div>
+    </div>
+    <div class="member-row">
+      <div class="member-photo-side"><img src="assets/member3.jpg" alt="Luke Atherton" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="avatar-fallback" style="display:none">LA</div></div>
+      <div class="member-info">
+        <div class="member-name">Luke Atherton</div>
+        <div class="member-role">Hardware · Structural</div>
+        <p class="member-bio">Luke began his robotics journey in 2019, initially exploring foundational coding and LEGO EV3 robotics. His skills soon broadened to include CAD design, 3D modelling, soldering, and hands-on hardware construction. Over the years, Luke has remained a dedicated and consistent presence in the RoboCup Junior Australia (RCJA) community, competing across multiple disciplines. His past achievements include 2nd place in the Open Line Rescue division at the 2022 State competition, 5th nationally that same year, 2nd at States and 6th nationally in the Standard Soccer League in 2023, and 3rd at States and 2nd nationally in Lightweight Soccer in 2024. In 2025, as a key member of Team Hyperion, Luke contributed to the team's 2nd place finish at the Queensland State Competition, 1st place nationally, and 1st place in the International Lightweight Soccer SuperTeam at RoboCup Junior International in Salvador, alongside a 14th place individual ranking. These achievements showcase Luke's technical expertise, collaboration, and determination to succeed at the highest level.</p>
+        <div class="member-tags"><span class="member-tag">CAD Software</span><span class="member-tag">Engineering Prodigy</span><span class="member-tag">Structural Design</span></div>
+      </div>
+    </div>
+    <div class="member-row">
+      <div class="member-photo-side"><img src="assets/member4.jpg" alt="Thomas McCabe" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="avatar-fallback" style="display:none">TM</div></div>
+      <div class="member-info">
+        <div class="member-name">Thomas McCabe</div>
+        <div class="member-role">Software · Sensing &amp; Control</div>
+        <p class="member-bio">Thomas began his robotics journey in 2019, quickly developing a strong foundation across multiple platforms and programming environments. He has gained proficiency in languages such as Spike Block, EV3 Block, Spike MicroPython, EV3 MicroPython, and RobotC. Thomas has demonstrated consistent commitment to the field through years of participation in RoboCup Junior Australia (RCJA) competitions. His notable achievements include competing in the RCJA OnStage Challenge (2021), advancing through Secondary Rescue (2022–2023), and achieving 3rd place in the State Soccer Standard League (2024). In 2025, as part of Team Hyperion, Thomas contributed to the team's 2nd place finish at the Queensland State Competition, 1st place at Nationals, and exceptional international success at RoboCup Junior in Salvador, Brazil, where the team placed 14th individually and 1st in the Lightweight Soccer SuperTeam. These achievements underscore Thomas's technical growth, perseverance, and enthusiasm for robotics.</p>
+        <div class="member-tags"><span class="member-tag">Python</span><span class="member-tag">C++</span><span class="member-tag">Sensors and Control</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="assets/nav-component.js"></script>
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.member-row, .mentor-box').forEach(el => {
+    el.style.opacity='0'; el.style.transform='translateY(20px)';
+    el.style.transition='opacity 0.55s ease, transform 0.55s ease'; observer.observe(el);
+  });
+</script>
+</body>
+</html>
