@@ -20,7 +20,9 @@ private:
         #define LS_FLIP_THRESH 90
     // Functions
         int inner_read(int sNum);
+        int outter_read(int sNum);
         void calculate_line_dir();
+        void calculate_line_dir_outter();
         void calculate_line_state();
     // Variables
         int inPin[4] = {LIGHT_PIN_DIGI_0, LIGHT_PIN_DIGI_1, LIGHT_PIN_DIGI_2,
@@ -34,7 +36,7 @@ private:
         int secondClusterPointStart = 0;
         int initialClusterPointEnd = 0;
         int secondClusterPointEnd = 0;
-    // Refs
+    // Refs // https://team-hyperion-bbc-robotics.github.io/
         Common com;
 };
 

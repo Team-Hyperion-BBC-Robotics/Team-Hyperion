@@ -79,7 +79,7 @@ void loop() {
     if (DRIBBLER_ENABLED && (tssp.ball().str() > BALL_CLOSE_STR)) {
         dribbler.run(100);
     }
-
+    Serial.print("goon");
     float _dir = 0;
     float _spd = 0;
     float _cor = -correction.update(com.normaliseAngle180(bearing.orientation.x), 0.0);

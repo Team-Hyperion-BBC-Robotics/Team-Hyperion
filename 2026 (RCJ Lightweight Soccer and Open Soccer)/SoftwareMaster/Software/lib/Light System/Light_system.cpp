@@ -29,6 +29,18 @@ int LightSystem::inner_read(int sNum)
     return (sNum >= 16) ? analogRead(LIGHT_PIN) : analogRead(LIGHT_PIN2);
 }
 
+/// @brief A function that reads one light sensor in the inner-ring
+/// @param sNum Sensor Index
+/// @return Returns the value of the indecated sensor
+int LightSystem::outter_read(int sNum)
+{
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        digitalWrite(inPin[i], (sNum >> i) & 1);
+    }
+    return (sNum >= 16) ? analogRead(LIGHT_PIN3) : analogRead(LIGHT_PIN3);
+}
+
 void LightSystem::update()
 {
     prevLineDirection = lineDirection;
@@ -150,6 +162,15 @@ void LightSystem::calculate_line_dir()
             lineDirection = (clusterMid[0] + clusterMid[2]) / 2;
         }
     }
+}
+
+void LightSystem::calculate_line_dir_outter(){
+    float xx = 0; float yy = 0;
+    if(outter_read(1)+outter_read(2)+outter_read(3)+outter_read(4) >= 2.5*LS_THRESH){yy++;}
+    if(outter_read(5)+outter_read(6)+outter_read(7)+outter_read(8) >= 2.5*LS_THRESH){xx++;}
+    if(outter_read(9)+outter_read(10)+outter_read(11)+outter_read(12) >= 2.5*LS_THRESH){yy--;}
+    if(outter_read(13)+outter_read(14)+outter_read(15)+outter_read(16) >= 2.5*LS_THRESH){xx--;}
+    lineDirection = atan2(yy,xx);
 }
 
 /*

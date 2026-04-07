@@ -3,8 +3,6 @@
 
 #include <Arduino.h>
 
-#define 
-
 #define FRINA 4
 #define FRINB 3
 #define FRPWM 2

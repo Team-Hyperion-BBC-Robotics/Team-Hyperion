@@ -5,7 +5,7 @@
 #define OPEN true // Set to true for LRF, false for TSSP
 
 TsspSystem tssp;
-int xshutPins[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+int xshutPins[8] = {LRFMUX0, LRFMUX1, LRFMUX2, LRFMUX3, LRFMUXOUT, 8};
 LRFArray lrf(xshutPins);
 
 void setup() {

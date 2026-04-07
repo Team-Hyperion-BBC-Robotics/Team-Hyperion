@@ -7,16 +7,20 @@
 
 class LRFArray {
 public:
-    LRFArray(int xshutPins[8]);
+    // s0-s3: mux select pins (LRFMUX0-3), sigPin: mux signal pin (LRFMUXOUT)
+    LRFArray(int s0, int s1, int s2, int s3, int sigPin, int count = 16);
     void begin();
     void update();
     uint16_t* get_distances() { return distances; }
 
 private:
-    uint16_t distances[8];
-    int _pins[8];
-    bool active[8];
-    VL53L4CD* sensors[8];
+    void selectChannel(int ch);
+
+    int _s0, _s1, _s2, _s3, _sigPin;
+    int _count;
+    uint16_t distances[16];
+    bool active[16];
+    VL53L4CD* sensors[16];
 };
 
 #endif
