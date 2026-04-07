@@ -3,43 +3,41 @@
 
 #include <Arduino.h>
 
-#define FRINA 0
-#define FRINB 0
-#define FRPWM 0
-#define BRINA 0
-#define BRINB 0
-#define BRPWM 0
-#define BLINA 0
-#define BLINB 0
-#define BLPWM 0
-#define FLINA 0
-#define FLINB 0
-#define FLPWM 0
-#define DRINA 0
-#define DRINB 0
-#define DRPWM 0
+#define 
 
-#define LIGHT_PIN_DIGI_0 23
-#define LIGHT_PIN_DIGI_1 22
-#define LIGHT_PIN_DIGI_2 15
-#define LIGHT_PIN_DIGI_3 14
-#define LIGHT_PIN 21
-#define LIGHT_PIN2 20
+#define FRINA 4
+#define FRINB 3
+#define FRPWM 2
+#define BRINA 10
+#define BRINB 9
+#define BRPWM 8
+#define BLINA 34
+#define BLINB 12
+#define BLPWM 11
+#define FLINA 7
+#define FLINB 6
+#define FLPWM 5
+#define DRINA 1
+#define DRINB 24
+#define DRPWM 23
 
-#define KICKER_PIN 0
+#define LIGHT_PIN_DIGI_0 17
+#define LIGHT_PIN_DIGI_1 16
+#define LIGHT_PIN_DIGI_2 40
+#define LIGHT_PIN_DIGI_3 39
+#define LIGHT_PIN 15
+#define LIGHT_PIN2 14
+#define LIGHT_PIN3 41
 
-#define KICKER_VD_PIN 0 
-#define ROBOT_VD_PIN 0
+#define KICKER_PIN 37
+#define PHOTOGATE_PIN 38
 
-/*
-    SWITCHES:
-    - Power (Hardware Switch) - Powers all logic + comm module.
-    - Motor (Hardware Switch) - Powers to motor.
-    - Kicker (Hardware Switch) - Stops power going to the Kicker Cap.
-    - Calibration (Software Switch) - Allows for calibration of IMU and LS.
-    - Goal Tracking (Software Switch) - Tells the code which goal to attack.
-*/
-#define CALIBRATION_SWITCH 0
-#define GOAL_TRACK_SWITCH 0
+#define KICKER_VD_PIN 27
+#define ROBOT_VD_PIN 26
+#define BATTERY_LED 25
+
+#define CALIBRATION_SWITCH 30
+#define GOAL_TRACK_SWITCH 31
+#define COM_MODULE 32
 
 #endif
