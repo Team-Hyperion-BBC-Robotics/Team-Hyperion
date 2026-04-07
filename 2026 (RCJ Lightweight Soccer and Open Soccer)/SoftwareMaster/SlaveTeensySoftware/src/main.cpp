@@ -5,8 +5,7 @@
 #define OPEN true // Set to true for LRF, false for TSSP
 
 TsspSystem tssp;
-int xshutPins[8] = {LRFMUX0, LRFMUX1, LRFMUX2, LRFMUX3, LRFMUXOUT, 8};
-LRFArray lrf(xshutPins);
+LRFArray lrf(LRFMUX0, LRFMUX1, LRFMUX2, LRFMUX3, LRFMUXOUT, 8);
 
 void setup() {
     Serial1.begin(115200);
@@ -19,7 +18,7 @@ void setup() {
 
 void loop() {
     if (OPEN) {
-        lrf.update();
+        lrf.update();   
         uint16_t* dists = lrf.get_distances();
         Serial1.print("LRF:");
         for(int i = 0; i < 8; i++) {
