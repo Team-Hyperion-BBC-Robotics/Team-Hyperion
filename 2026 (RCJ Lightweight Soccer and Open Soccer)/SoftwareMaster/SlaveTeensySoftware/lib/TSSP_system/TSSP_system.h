@@ -19,6 +19,9 @@ private:
     float xVa[TSSP_NUM] = {0.0};
     float yVa[TSSP_NUM] = {0.0};
 
+    #define SENSOR_BROKEN_HIGH 255
+    #define SENSOR_BROKEN_LOW 0 
+
     #define ARRAYSHIFTDOWN(a, lower, upper){          \
         if (upper == (sizeof(a)/sizeof(a[0])) - 1){   \
             for (int q = upper - 1; q >= lower; q--){ \

@@ -79,7 +79,7 @@ void loop() {
     if (DRIBBLER_ENABLED && (tssp.ball().str() > BALL_CLOSE_STR)) {
         dribbler.run(100);
     }
-    Serial.print("goon");
+
     float _dir = 0;
     float _spd = 0;
     float _cor = -correction.update(com.normaliseAngle180(bearing.orientation.x), 0.0);
@@ -172,12 +172,14 @@ void loop() {
             break;
     }
 
-    if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
-        batteryTimer.update(); 
-        motors.run(_spd, _dir, _cor);
-    } else if (batteryTimer.time_has_passed_no_update()) {
-        motors.run(0, 0, 20); 
-    } else {
-        motors.run(_spd, _dir, _cor);
-    }
+    // if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
+    //     batteryTimer.update();
+    //     motors.run(_spd, _dir, _cor);
+    // } else if (batteryTimer.time_has_passed_no_update()) {
+    //     motors.run(0, 0, 20); 
+    // } else {
+    //     motors.run(_spd, _dir, _cor);
+    // }
+    Serial.println(bearing.orientation.x);
+    motors.run(0, 0, _cor);
 }

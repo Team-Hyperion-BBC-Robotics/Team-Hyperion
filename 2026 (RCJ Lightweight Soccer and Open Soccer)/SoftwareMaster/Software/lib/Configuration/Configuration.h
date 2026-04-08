@@ -6,7 +6,7 @@
 // [MASTER VALUES]
 #define ROBOT 1
 #define GOAL_TRACKING_ENABLED 0
-#define TEST_MODE 0
+#define TEST_MODE 1
 #define DRIBBLER_ENABLED 0
 #define OPEN 0
 
@@ -16,8 +16,8 @@
     #define BASE_SPEED 0
     #define SURGE_SPEED 0
     #define LS_THRESH 0
-    #define KP_IMU 0.0
-    #define KD_IMU 0.0
+    #define KP_IMU 0.5
+    #define KD_IMU 0.03
     #define KP_GOALT 0.0
     #define KD_GOALT 0.0
     #define KP_VERT 0.0
@@ -71,8 +71,8 @@
 // [KICKER SPECIFICATIONS]
 #define KICKER_VOLTAGE_STABALISER 1
 #define KICKER_REQUIRED_VOLT 0
-#define ROBOT_VOLTAGE_STABALISER 1 
-#define ROBOT_REQUIRED_VOLT 0
+#define ROBOT_VOLTAGE_STABALISER 1
+#define ROBOT_REQUIRED_VOLT 11.0
 
 // [FIELD SPECIFICATIONS]
 #define CENTER_TO_GOAL 85

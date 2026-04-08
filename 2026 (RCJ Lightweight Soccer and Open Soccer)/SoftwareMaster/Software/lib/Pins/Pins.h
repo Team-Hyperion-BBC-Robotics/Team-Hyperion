@@ -9,7 +9,7 @@
 #define BRINA 10
 #define BRINB 9
 #define BRPWM 8
-#define BLINA 34
+#define BLINA 33
 #define BLINB 12
 #define BLPWM 11
 #define FLINA 7
