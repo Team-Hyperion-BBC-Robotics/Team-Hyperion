@@ -46,7 +46,7 @@ PID vert(KP_VERT, 0.0, KD_VERT);
 PID localise(KP_LOC, KD_LOC, 0.0, 200.0);
 PID lineAvoid(KP_LAV, 0.0, KD_LAV, 100.0);
 
-RobotState currentBehaviour = STATE_IDLE;
+RobotState currentBehaviour =  STATE_ATTACK;
 DefendSubState defendMode = LWDEFEND_VECTOR;
 sensors_event_t bearing;
 
@@ -88,15 +88,18 @@ void loop() {
         currentBehaviour = STATE_TEST;
     } else if (digitalRead(CALIBRATION_SWITCH)) {
         currentBehaviour = STATE_CALIBRATE;
-    } else if (ls.get_line_dir() != -1) {
+    // } else if (ls.get_line_dir() != -1) {
+    } else if (false) {
         currentBehaviour = STATE_LINE_AVOID;
-    } else if (bt.get_role()) {
+    } else if (bt.get_role() || ATTACK) {
         currentBehaviour = STATE_ATTACK;
     } else {
         currentBehaviour = STATE_DEFEND;
     }
 
     switch (currentBehaviour) {
+        case STATE_IDLE:
+            _spd = 0;
         case STATE_TEST:
             _spd = 0;
             break;
@@ -114,8 +117,13 @@ void loop() {
 
         case STATE_ATTACK:
             if(tssp.ball().str() != 0) {
-                _dir = tssp.move().dir();
-                _spd = tssp.move().spd();
+                if(tssp.ball().dir() > 330.0 || tssp.ball().dir() < 40.0) {
+                    _dir = tssp.ball().dir();
+                    _spd = SURGE_SPEED;
+                } else {
+                    _dir = tssp.move().dir();
+                    _spd = tssp.move().spd();
+                }
                 if (GOAL_TRACKING_ENABLED) {
                     _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
                     if ((abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && tssp.ball().str() > BALL_CLOSE_STR) {
@@ -123,9 +131,10 @@ void loop() {
                     }
                 }
             } else {
-                cam.localise_to(0, 0);
-                _dir = cam.robot().move_angle();
-                _spd = -localise.update(cam.robot().move_mag(), 0.0);
+                // cam.localise_to(0, 0);
+                // _dir = cam.robot().move_angle();
+                // _spd = -localise.update(cam.robot().move_mag(), 0.0);
+                _spd = 0;
             }
             break;
 
@@ -180,6 +189,12 @@ void loop() {
     // } else {
     //     motors.run(_spd, _dir, _cor);
     // }
-    Serial.println(bearing.orientation.x);
-    motors.run(0, 0, _cor);
+    motors.run(_spd, _dir, _cor);
+    // Serial.print(tssp.ball().dir());
+    // Serial.print("\t");
+    // Serial.print(tssp.ball().str());
+    // Serial.print("\t");
+    // Serial.print(tssp.move().dir());
+    // Serial.print("\t");
+    // Serial.println(tssp.move().spd());
 }

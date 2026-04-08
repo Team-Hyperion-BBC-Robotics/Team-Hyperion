@@ -22,6 +22,7 @@ void TsspSystem::update()
     uint8_t tsspSortedValues[TSSP_NUM] = {0};
     uint8_t tsspSortedIndex[TSSP_NUM] = {0};
 
+    // Read all sensors
     for (int i = 0; i < 255; i++)
     {
         for (int j = 0; j < TSSP_NUM; j++)
@@ -31,69 +32,54 @@ void TsspSystem::update()
         delayMicroseconds(3);
     }
 
-    Serial.println();
-    for (int j = 0; j < TSSP_NUM; j++)
+    // First pass: filter out broken sensors, sort all valid ones
+    for (uint8_t i = 0; i < TSSP_NUM; i++)
     {
-        Serial.print(tsspValues[j]);
-        Serial.print("\t");
-    }
-
-    uint8_t validCount = 0;
-    for (uint8_t i = 0; i < TSSP_NUM && validCount < 4; i++)
-    {
+        // Skip if sensor is broken (reading 255 or 0 consistently)
         if (tsspValues[i] >= 250 || tsspValues[i] <= 5)
             continue;
 
+        // Insert into sorted array
         for (uint8_t j = 0; j < TSSP_NUM; j++)
         {
             if (tsspValues[i] > tsspSortedValues[j])
             {
-                if (j <= i)
-                {
-                    ARRAYSHIFTDOWN(tsspSortedValues, j, i);
-                    ARRAYSHIFTDOWN(tsspSortedIndex, j, i);
-                }
+                ARRAYSHIFTDOWN(tsspSortedValues, j, TSSP_NUM - 1);
+                ARRAYSHIFTDOWN(tsspSortedIndex, j, TSSP_NUM - 1);
                 tsspSortedValues[j] = tsspValues[i];
                 tsspSortedIndex[j] = i;
                 break;
             }
         }
-        validCount++;
     }
 
+    // Calculate direction - adaptive strategy for close vs far range
     float x = 0.0f;
     float y = 0.0f;
-    uint8_t sensorsUsed = 0;
-
     for (uint8_t i = 0; i < 4; i++)
     {
         if (tsspSortedValues[i] > 0)
         {
             x += tsspSortedValues[i] * xVa[tsspSortedIndex[i]];
             y += tsspSortedValues[i] * yVa[tsspSortedIndex[i]];
-            sensorsUsed++;
         }
     }
+    x /= 4;
+    y /= 4;
 
-    if (sensorsUsed > 0)
-    {
-        x /= sensorsUsed;
-        y /= sensorsUsed;
+    float addedVals = 0;
+    for (uint8_t i = 0; i < TSSP_NUM; i++) {
+        addedVals += tsspSortedValues[i];   
     }
+    ballStr = addedVals/TSSP_NUM;
 
-    ballStr = 0;
-    if (tsspSortedValues[0] > 0) ballStr += 3 * tsspSortedValues[0];
-    if (tsspSortedValues[1] > 0) ballStr += 2 * tsspSortedValues[1];
-    if (tsspSortedValues[2] > 0) ballStr += tsspSortedValues[2];
-    if (tsspSortedValues[3] > 0) ballStr += tsspSortedValues[3];
-    ballStr /= 7.0f;
-
-    if (ballStr > 0) {
+    if (x != 0 || y != 0)
+    {
         ballDir = fmod(atan2f(y, x) * RAD_TO_DEG, 360.0f);
         if (ballDir < 0) ballDir += 360.0f;
-    } else {
+    }
+    else
+    {
         ballDir = 0;
     }
-
-    Serial.println(ballDir);
 }

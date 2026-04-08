@@ -18,6 +18,8 @@ private:
     float ballStr = 0;
     float xVa[TSSP_NUM] = {0.0};
     float yVa[TSSP_NUM] = {0.0};
+    float ballStrBuffer[5] = {0}; 
+    int bufferIdx = 0;
 
     #define SENSOR_BROKEN_HIGH 255
     #define SENSOR_BROKEN_LOW 0 

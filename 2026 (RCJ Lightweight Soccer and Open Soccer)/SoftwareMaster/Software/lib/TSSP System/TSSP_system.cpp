@@ -23,7 +23,11 @@ void TsspSystem::update() {
 
     // 5. Update Movement Speed (slows down as the orbit offset increases)
     float speedReduction = totalOffset / 90.0f;
-    mInfo._spd = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (1.0f - speedReduction);
+    if(bInfo._str == 0) {
+        mInfo._spd = 0;
+    } else {
+        mInfo._spd = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (1.0f - speedReduction);
+    }
 }
 
 void TsspSystem::readUartData() {

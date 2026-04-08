@@ -6,15 +6,16 @@
 // [MASTER VALUES]
 #define ROBOT 1
 #define GOAL_TRACKING_ENABLED 0
-#define TEST_MODE 1
+#define TEST_MODE 0
 #define DRIBBLER_ENABLED 0
 #define OPEN 0
+#define ATTACK 1
 
 // [TUNING VALUES]
 #if ROBOT
-    #define ORBIT_TUNER 1
-    #define BASE_SPEED 0
-    #define SURGE_SPEED 0
+    #define ORBIT_TUNER 30.0
+    #define BASE_SPEED 40
+    #define SURGE_SPEED 60
     #define LS_THRESH 0
     #define KP_IMU 0.5
     #define KD_IMU 0.03
