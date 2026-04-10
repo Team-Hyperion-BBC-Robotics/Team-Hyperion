@@ -16,26 +16,26 @@ void TsspSystem::update() {
     uint8_t tsspSortedValues[TSSP_NUM] = {0};
     uint8_t tsspSortedIndex[TSSP_NUM] = {0}; 
 
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < 500; i++) {
         for (int j = 0; j < TSSP_NUM; j++) {
             tsspValues[j] += 1 - digitalRead(tsspPins[j]);
             delayMicroseconds(1);
         }
     }
 
-    // for(int i = 0; i < TSSP_NUM; i++) {
-    //     Serial.print(tsspValues[i]);
-    //     Serial.print("\t");
-    // }
-    // Serial.println();
-    // Serial.println();
-    int tt = 0;
-
-    for (int i = 0; i < TSSP_NUM; i++)
-    {
-        if(tsspValues[i]<=tsspValues[tt]){tt=i;}
+    for(int i = 0; i < TSSP_NUM; i++) {
+        Serial.print(tsspValues[i]);
+        Serial.print("\t");
     }
-    Serial.println((tt*360/TSSP_NUM + 180 - 90) % 360);
+    Serial.println();
+    Serial.println();
+    // int tt = 0;
+
+    // for (int i = 0; i < TSSP_NUM; i++)
+    // {
+    //     if(tsspValues[i]<=tsspValues[tt]){tt=i;}
+    // }
+    //Serial.println((tt*360/TSSP_NUM + 180 - 90) % 360);
 
     for(uint8_t i = 0; i < TSSP_NUM; i++) {
         for(uint8_t j = 0; j < TSSP_NUM; j++) {

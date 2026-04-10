@@ -33,6 +33,7 @@ while True:
     blobs = sorted(blobs, key=lambda blob: -blob.area())
     for blob in blobs:
         data[blob.code()] = [blob.cx(),blob.cy()]
+        #img.draw_cross(blob.cx(),blob.cy(),(255,255,255),10,2)
 
     # Sending Data
     uart.writechar(200)
