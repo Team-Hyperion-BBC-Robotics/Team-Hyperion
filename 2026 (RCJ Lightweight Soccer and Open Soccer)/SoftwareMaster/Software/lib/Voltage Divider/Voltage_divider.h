@@ -17,7 +17,7 @@
  */
 class VoltageDivider { 
 public:
-    VoltageDivider(uint8_t p, float d) : pin(p), divider(d) {}
+    VoltageDivider(uint8_t p, float d, float o) : pin(p), divider(d), offset(o) {}
     void init();
     void update();
     float get_lvl();
@@ -25,6 +25,7 @@ public:
 private:
     uint8_t pin;
     float divider;
+    float offset;
     float lvl;
     bool motorOn;
 };

@@ -32,7 +32,7 @@
 
 #define KICKER_VD_PIN 27
 #define ROBOT_VD_PIN 26
-#define BATTERY_LED 25
+#define BATTERY_LED 24
 
 #define CALIBRATION_SWITCH 30
 #define GOAL_TRACK_SWITCH 31

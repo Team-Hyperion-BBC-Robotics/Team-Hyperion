@@ -17,13 +17,7 @@ void VoltageDivider::init() {
  * @returns Voltage drawn through voltage divider in volts.
  */
 void VoltageDivider::update() {
-    #if DEBUG_VD
-        Serial.print("Analog: ");
-        Serial.print(analogRead(pin));
-        Serial.print(" Final: ");
-        Serial.println(analogRead(pin) / divider);
-    #endif
-    lvl = analogRead(pin) / divider;
+    lvl = (analogRead(pin) / divider) + offset;
 }
 
 float VoltageDivider::get_lvl() {

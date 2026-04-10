@@ -25,7 +25,7 @@ enum DefendSubState {
     LWDEFEND_LOCALISE
 };
 
-VoltageDivider battery(ROBOT_VD_PIN, ROBOT_VOLTAGE_STABALISER);
+VoltageDivider battery(ROBOT_VD_PIN, ROBOT_VOLTAGE_STABALISER, ROBOT_VOLTAGE_OFFSET);
 DriveSystem motors;
 Adafruit_BNO055 bno(55, BNO055_ADDRESS_B, &Wire);
 TsspSystem tssp;
@@ -57,9 +57,11 @@ void setup() {
     ls.init();
     cam.init();
     kicker.init();
+    battery.init();
     
     pinMode(CALIBRATION_SWITCH, INPUT);
     pinMode(GOAL_TRACK_SWITCH, INPUT);
+    pinMode(BATTERY_LED, OUTPUT);
 
     while (!bno.begin(OPERATION_MODE_IMUPLUS)) {
         Serial.println("No BNO055 detected.");
@@ -75,6 +77,7 @@ void loop() {
     cam.update(digitalRead(GOAL_TRACK_SWITCH));
     bt.update(tssp.ball().dir(), tssp.ball().str(), cam.attack().angle(), cam.defend().dist(), 0.0f, false, cam.robot().x(), cam.robot().y());
     ls.update();
+    battery.update();
 
     if (DRIBBLER_ENABLED && (tssp.ball().str() > BALL_CLOSE_STR)) {
         dribbler.run(100);
@@ -180,21 +183,19 @@ void loop() {
             }
             break;
     }
+    // Serial.print(analogRead(ROBOT_VD_PIN));
+    // Serial.print("\t");
+    // Serial.println(battery.get_lvl());
 
-    // if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
-    //     batteryTimer.update();
-    //     motors.run(_spd, _dir, _cor);
-    // } else if (batteryTimer.time_has_passed_no_update()) {
-    //     motors.run(0, 0, 20); 
-    // } else {
-    //     motors.run(_spd, _dir, _cor);
-    // }
-    motors.run(_spd, _dir, _cor);
-    // Serial.print(tssp.ball().dir());
-    // Serial.print("\t");
-    // Serial.print(tssp.ball().str());
-    // Serial.print("\t");
-    // Serial.print(tssp.move().dir());
-    // Serial.print("\t");
-    // Serial.println(tssp.move().spd());
+    if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
+        batteryTimer.update();
+        motors.run(_spd, _dir, _cor);
+        digitalWrite(BATTERY_LED, LOW);
+    } else if (batteryTimer.time_has_passed_no_update()) {
+        digitalWrite(BATTERY_LED, HIGH);
+        motors.run(0, 0, 35); 
+    } else {
+        motors.run(_spd, _dir, _cor);
+        digitalWrite(BATTERY_LED, LOW);
+    }
 }

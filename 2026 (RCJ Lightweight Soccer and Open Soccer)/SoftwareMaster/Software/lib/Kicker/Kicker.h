@@ -36,7 +36,7 @@ public:
     void fire();
 private:
     VoltageDivider kickerVoltage = VoltageDivider(KICKER_VD_PIN, 
-                                                  KICKER_VOLTAGE_STABALISER);
+                                                  KICKER_VOLTAGE_STABALISER, KICKER_VOLTAGE_OFFSET);
 
     Timer pulseDuration = Timer(35000);
     Timer rechargeDelay = Timer(500000);
