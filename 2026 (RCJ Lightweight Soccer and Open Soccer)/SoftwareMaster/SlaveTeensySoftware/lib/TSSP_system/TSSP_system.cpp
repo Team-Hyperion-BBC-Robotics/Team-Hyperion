@@ -16,26 +16,20 @@ void TsspSystem::update() {
     uint8_t tsspSortedValues[TSSP_NUM] = {0};
     uint8_t tsspSortedIndex[TSSP_NUM] = {0}; 
 
-    for (int i = 0; i < 500; i++) {
-        for (int j = 0; j < TSSP_NUM; j++) {
+    for (uint8_t i = 0; i < 100; i++) {
+        for (uint8_t j = 0; j < TSSP_NUM; j++) {
             tsspValues[j] += 1 - digitalRead(tsspPins[j]);
-            delayMicroseconds(1);
         }
+        delayMicroseconds(10);
     }
 
-    for(int i = 0; i < TSSP_NUM; i++) {
+    for(uint8_t i = 0; i < TSSP_NUM; i++) {
         Serial.print(tsspValues[i]);
-        Serial.print("\t");
+        Serial.print(" ");
     }
     Serial.println();
     Serial.println();
-    // int tt = 0;
-
-    // for (int i = 0; i < TSSP_NUM; i++)
-    // {
-    //     if(tsspValues[i]<=tsspValues[tt]){tt=i;}
-    // }
-    //Serial.println((tt*360/TSSP_NUM + 180 - 90) % 360);
+    int tt = 0;
 
     for(uint8_t i = 0; i < TSSP_NUM; i++) {
         for(uint8_t j = 0; j < TSSP_NUM; j++) {
@@ -50,7 +44,8 @@ void TsspSystem::update() {
             }
         }
     }
-
+    tt = ( tsspSortedIndex[0] + tsspSortedIndex[1] ) / 2;
+    //Serial.println(tt);
     float x = 0.0;
     float y = 0.0;
     for(uint8_t i = 0; i < 4; i++) {
@@ -63,6 +58,6 @@ void TsspSystem::update() {
     //Serial.println(tt*360/TSSP_NUM);
     ballStr = ((3 * tsspSortedValues[0]) + (2 * tsspSortedValues[1]) + tsspSortedValues[2] + tsspSortedValues[3]) / 7.0;
     ballDir = (ballStr != 0) ? 360 -fmod((RAD_TO_DEG * (atan2f(y, x)))-90, 360) : 0;
-    ballDir = ((tt*360/TSSP_NUM + 180 - 90) % 360);
+    ballDir = ((tt*360/TSSP_NUM) % 360);
 
 }
