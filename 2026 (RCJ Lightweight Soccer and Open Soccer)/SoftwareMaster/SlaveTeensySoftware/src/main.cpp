@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <TSSP_system.h>
-#include "LRF.h"
+#include <LRF.h>
 
 #define OPEN false
 
@@ -39,8 +39,6 @@ void loop()
     else
     {
         tssp.update();
-        // Serial.println(tssp.get_ball_dir());
         Serial1.printf("DIR:%.2f,STR:%.2f\n", tssp.get_ball_dir(), tssp.get_ball_str());
-    }
-    // delay(10); // Small stability delay
+    } // Small stability delay
 }

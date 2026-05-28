@@ -21,6 +21,12 @@ void TsspSystem::update() {
     float directionAdjustment = (relativeDir < 0) ? -totalOffset : totalOffset;
     mInfo._dir = fmod(bInfo._dir + directionAdjustment, 360.0f);
 
+    // if(bInfo._dir>=0 && bInfo._dir<= 180){
+    //     mInfo._dir += pow(bInfo._dir,0.80) + 25;
+    // }else{
+    //     mInfo._dir -= pow(bInfo._dir-180,0.80) + 25;
+    // }
+
     // 5. Update Movement Speed (slows down as the orbit offset increases)
     float speedReduction = totalOffset / 90.0f;
     if(bInfo._str == 0) {

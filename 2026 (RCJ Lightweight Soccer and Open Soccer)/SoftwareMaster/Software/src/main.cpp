@@ -8,7 +8,7 @@
 #include <Bluetooth.h>
 #include <Kicker.h>
 #include <Dribbler.h>
-#include <Common.h>
+#include <LightSys.h>
 
 enum RobotState {
     STATE_IDLE,
@@ -35,6 +35,7 @@ Bluetooth bt;
 Kicker kicker;
 Dribbler dribbler;
 Common com;
+LightSys light;
 
 Timer batteryTimer(5000000);
 Timer wallKickTimer(1500000);
@@ -58,6 +59,7 @@ void setup() {
     cam.init();
     kicker.init();
     battery.init();
+    light.init();
     
     pinMode(CALIBRATION_SWITCH, INPUT);
     pinMode(GOAL_TRACK_SWITCH, INPUT);
@@ -68,15 +70,17 @@ void setup() {
         delay(1000);
     }
     bno.setExtCrystalUse(true);
-    currentBehaviour = STATE_IDLE;
+    currentBehaviour = STATE_IDLE; 
 }
 
 void loop() {
-    bno.getEvent(&bearing);
+    bno.getEvent(&bearing); 
     tssp.update();
-    cam.update(digitalRead(GOAL_TRACK_SWITCH));
+    // cam.update(digitalRead(GOAL_TRACK_SWITCH));
+    cam.update(digitalRead(GOAL_TRACK_SWITCH), bearing.orientation.x);
     bt.update(tssp.ball().dir(), tssp.ball().str(), cam.attack().angle(), cam.defend().dist(), 0.0f, false, cam.robot().x(), cam.robot().y());
     ls.update();
+    light.update();
     battery.update();
 
     if (DRIBBLER_ENABLED && (tssp.ball().str() > BALL_CLOSE_STR)) {
@@ -91,8 +95,8 @@ void loop() {
         currentBehaviour = STATE_TEST;
     } else if (digitalRead(CALIBRATION_SWITCH)) {
         currentBehaviour = STATE_CALIBRATE;
-    // } else if (ls.get_line_dir() != -1) {
-    } else if (false) {
+    } else if (light.onLine) {
+    // } else if (false) {
         currentBehaviour = STATE_LINE_AVOID;
     } else if (bt.get_role() || ATTACK) {
         currentBehaviour = STATE_ATTACK;
@@ -104,6 +108,9 @@ void loop() {
         case STATE_IDLE:
             _spd = 0;
         case STATE_TEST:
+            Serial.print(bearing.orientation.x);
+            Serial.print("\t");
+            Serial.println(_cor);
             _spd = 0;
             break;
 
@@ -111,33 +118,40 @@ void loop() {
             bno.setMode(OPERATION_MODE_CONFIG);
             delay(20);
             bno.setMode(OPERATION_MODE_IMUPLUS);
+            light.calibrate();
             break;
 
         case STATE_LINE_AVOID:
-            _spd = -lineAvoid.update(ls.get_line_state(), 0.0);
-            _dir = fmod(ls.get_line_dir() + 180.0, 360);
+            // _spd = -lineAvoid.update(ls.get_line_state(), 0.0);
+            _spd = 100.0;
+            _dir = fmod(light.get_line_direction() + 180.0, 360);
+            // Serial.println(light.get_line_magnitude());
             break;
 
         case STATE_ATTACK:
+            if (GOAL_TRACKING_ENABLED && cam.attack().visible()) {
+                        _cor = goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
+                        // if ((abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && tssp.ball().str() > BALL_CLOSE_STR) {
+                        //     kicker.fire();
+                        // }
+            }
             if(tssp.ball().str() != 0) {
-                if(tssp.ball().dir() > 330.0 || tssp.ball().dir() < 40.0) {
+                if(tssp.ball().dir() > 330.0 || tssp.ball().dir() < 30.0) {
                     _dir = tssp.ball().dir();
                     _spd = SURGE_SPEED;
                 } else {
                     _dir = tssp.move().dir();
                     _spd = tssp.move().spd();
                 }
-                if (GOAL_TRACKING_ENABLED) {
-                    _cor = -goalTrack.update(com.normaliseAngle180(cam.attack().angle()), 0.0);
-                    if ((abs(com.normaliseAngle180(cam.attack().angle())) < 8.0) && tssp.ball().str() > BALL_CLOSE_STR) {
-                        kicker.fire();
-                    }
-                }
             } else {
-                // cam.localise_to(0, 0);
-                // _dir = cam.robot().move_angle();
-                // _spd = -localise.update(cam.robot().move_mag(), 0.0);
-                _spd = 0;
+                if(GOAL_TRACKING_ENABLED && false) {
+                   cam.localise_to(-300.0, -300.0, bearing.orientation.x);
+                    _dir = cam.robot().move_angle();
+                    _spd = abs(localise.update(cam.robot().move_mag(), 0)); 
+                } else {
+                    _spd = 0;
+                }
+                // _spd = 0;
             }
             break;
 
@@ -176,16 +190,13 @@ void loop() {
                     }
                     break;
                 case(LWDEFEND_LOCALISE):
-                    cam.localise_to(40*((cam.robot().x() < 0) ? -1 : 1), 65*((cam.robot().y() < 0) ? -1 : 1));
+                    cam.localise_to(40*((cam.robot().x() < 0) ? -1 : 1), 65*((cam.robot().y() < 0) ? -1 : 1), bearing.orientation.x);
                     _dir = cam.robot().move_angle();
                     _spd = cam.robot().move_mag();
                     break;
             }
             break;
     }
-    // Serial.print(analogRead(ROBOT_VD_PIN));
-    // Serial.print("\t");
-    // Serial.println(battery.get_lvl());
 
     if (battery.get_lvl() > ROBOT_REQUIRED_VOLT) {
         batteryTimer.update();
@@ -198,4 +209,7 @@ void loop() {
         motors.run(_spd, _dir, _cor);
         digitalWrite(BATTERY_LED, LOW);
     }
+    // Serial.println(_dir);
+    // Serial.println(cam.attack().angle());
+    // Serial.println(light.onLine);
 }

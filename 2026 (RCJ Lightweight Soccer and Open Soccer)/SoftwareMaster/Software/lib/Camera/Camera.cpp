@@ -34,7 +34,7 @@ void Camera::init() {
  *
  * @param attackBlue  True → attack blue goal; false → attack yellow.
  */
-void Camera::update(bool attackBlue) {
+void Camera::update(bool attackBlue, float bearing) {
     if (cameraSerial.available() < CAM_PACKET_SIZE) return;
     int b1 = cameraSerial.read();
     int b2 = cameraSerial.peek();
@@ -42,40 +42,44 @@ void Camera::update(bool attackBlue) {
     cameraSerial.read();
     int goalXY = cameraSerial.read();
     int goalYY = cameraSerial.read();
+    int goalSzY = cameraSerial.read();
     int goalXB = cameraSerial.read();
     int goalYB = cameraSerial.read();
+    int goalSzB = cameraSerial.read();
     int ballX  = cameraSerial.read();
     int ballY  = cameraSerial.read();
+
+    bool yellowVisible = (goalYY != 255 && goalXY != 255);
+    bool blueVisible   = (goalYB != 255 && goalXB != 255);
+    
     shift(goalXY, goalYY);
     shift(goalXB, goalYB);
     shift(ballX,  ballY);
-    float cmgoalXY = px_to_cm(goalXY);
-    float cmgoalYY = px_to_cm(goalYY);
-    float cmgoalXB = px_to_cm(goalXB);
-    float cmgoalYB = px_to_cm(goalYB);
-    float cmballX = px_to_cm(ballX);
-    float cmballY = px_to_cm(ballY);
     if (attackBlue) {
-        attackGoal._angle  = calc_angle(cmgoalYB, cmgoalXB);
-        attackGoal._dist   = calc_distance(cmgoalXB, cmgoalYB);
-        attackGoal._visible = (goalYB != 0);
+        attackGoal._angle  = calc_angle(goalYB, goalXB);
+        attackGoal._dist   = calc_distance(goalXB, goalYB);
+        attackGoal._size   = px_to_mm(goalSzB);
+        attackGoal._visible = blueVisible;
 
-        defendGoal._angle  = calc_angle(cmgoalYY, cmgoalXY);
-        defendGoal._dist   = calc_distance(cmgoalXY, cmgoalYY);
-        defendGoal._visible = (goalYY != 0);
+        defendGoal._angle  = calc_angle(goalYY, goalXY);
+        defendGoal._dist   = calc_distance(goalXY, goalYY);
+        defendGoal._size   = px_to_mm(goalSzY);
+        defendGoal._visible = yellowVisible;
     }
     else {
-        attackGoal._angle  = calc_angle(cmgoalYY, cmgoalXY);
-        attackGoal._dist   = calc_distance(cmgoalXY, cmgoalYY);
-        attackGoal._visible = (goalYY != 0);
+        attackGoal._angle  = calc_angle(goalYY, goalXY);
+        attackGoal._dist   = calc_distance(goalXY, goalYY);
+        attackGoal._size   = px_to_mm(goalSzY);
+        attackGoal._visible = yellowVisible;
 
-        defendGoal._angle  = calc_angle(cmgoalYB, cmgoalXB);
-        defendGoal._dist   = calc_distance(cmgoalXB, cmgoalYB);
-        defendGoal._visible = (goalYB != 0);
+        defendGoal._angle  = calc_angle(goalYB, goalXB);
+        defendGoal._dist   = calc_distance(goalXB, goalYB);
+        defendGoal._size   = px_to_mm(goalSzB);
+        defendGoal._visible = blueVisible;
     }
     if(OPEN) {
-        ballInfo._angle = calc_angle(cmballY, cmballX);
-        ballInfo._dist  = calc_distance(cmballX, cmballY);
+        ballInfo._angle = calc_angle(ballY, ballX);
+        ballInfo._dist  = calc_distance(ballX, ballY);
 
         float relativeDir = (ballInfo._angle > 180) ? (ballInfo._angle - 360) : ballInfo._angle;
         float ratio = constrain(ballInfo._dist / ORBIT_TUNER, 0.0f, 1.0f);
@@ -88,16 +92,28 @@ void Camera::update(bool attackBlue) {
         ballInfo._moveAngle = fmod(ballInfo._angle + directionAdjustment, 360.0f);
         ballInfo._moveSpeed = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (1.0f - speedReduction);
     } else {
-        if(defendGoal.visible()) {
-            robotData._x = 0 - (defendGoal.dist() * cos(defendGoal.angle() * DEG_TO_RAD));
-            robotData._y = -CENTER_TO_GOAL - (defendGoal.dist() * sin(defendGoal.angle() * DEG_TO_RAD));
-        } else if(attackGoal.visible()) {
-            robotData._x = 0 - (attackGoal.dist() * cos(attackGoal.angle() * DEG_TO_RAD));
-            robotData._y = CENTER_TO_GOAL - (attackGoal.dist() * sin(attackGoal.angle() * DEG_TO_RAD));
+        if(attackGoal.visible()) {
+            float globalAng = (attackGoal._angle + bearing) * DEG_TO_RAD;
+            robotData._x = 0 - (attackGoal._dist * sinf(globalAng));
+            robotData._y = CENTER_TO_GOAL - (attackGoal._dist * cosf(globalAng));
+            Serial.print(robotData._y);
+            Serial.print("\t");
+            if(AUSTRALIAN_FIELD) {
+                robotData._y += 200.0;
+            }
+            Serial.println(robotData._y);
+            if(robotData._x < 0) {
+                robotData._y -= -563.72;
+            }
         } else {
-            robotData._x = 255;
-            robotData._y = 0;
+            robotData._x = -300.0;
+            robotData._y = -300.0;
         }
+        // } else if(defendGoal.visible()) {
+        //     float globalAng = (defendGoal._angle + bearing) * DEG_TO_RAD;
+        //     robotData._x = 0 - (defendGoal._dist * sinf(globalAng));
+        //     robotData._y = -CENTER_TO_GOAL - (defendGoal._dist * cosf(globalAng));
+        
     }
 }
 
@@ -110,10 +126,10 @@ void Camera::update(bool attackBlue) {
  * * @param targX The goal X-coordinate to calculate movement towards.
  * @param targY The goal Y-coordinate to calculate movement towards.
  */
-void Camera::localise_to(float targX, float targY) {
+void Camera::localise_to(float targX, float targY, float bearing) {
     if(defendGoal.visible() || attackGoal.visible()) {
-        robotData._moveMag = sqrt(pow((robotData._x - targX), 2) + pow((robotData._y - targY), 2));
-        robotData._moveAngle = atan2f(targY - robotData._y, targX - robotData._x) * RAD_TO_DEG;
+        robotData._moveMag = sqrt(pow((robotData._x - targX), 2) + pow((robotData._y - targY), 2));     
+        robotData._moveAngle = com.floatMod((atan2f(targX - robotData._x, targY - robotData._y) * RAD_TO_DEG) - bearing + 360.0f, 360.0f);
     } else {
         robotData._moveAngle = 0;
         robotData._moveMag = 0;
@@ -128,7 +144,7 @@ void Camera::localise_to(float targX, float targY) {
  * @param y Reference to the raw Y pixel coordinate; modified in-place.
  */
 void Camera::shift(int& x, int& y) {
-    if (x != 0) {
+    if (x != 255) {
         x -= CAMERA_PIXEL_SHIFT;
         y -= CAMERA_PIXEL_SHIFT;
     }
@@ -141,8 +157,9 @@ void Camera::shift(int& x, int& y) {
  * * @param px The pixel value to convert.
  * @return float The resulting distance in centimeters.
  */
-float Camera::px_to_cm(int px) {
-    return (0.361429*px)-36.18095;
+float Camera::px_to_mm(int px) {
+    return 0.0000913503*pow(px, 3.51908) + 221.38261;
+    // return 6284.13857*pow(px, -0.258574) - 1666.12121;
 }
 
 /**
@@ -154,7 +171,7 @@ float Camera::px_to_cm(int px) {
  * @return float Estimated distance to the target.
  */
 float Camera::calc_distance(float x, float y) {
-    return sqrtf(pow(x, 2) + pow(y, 2));
+    return px_to_mm(sqrtf(pow(x, 2) + pow(y, 2)));
 }
 
 /**

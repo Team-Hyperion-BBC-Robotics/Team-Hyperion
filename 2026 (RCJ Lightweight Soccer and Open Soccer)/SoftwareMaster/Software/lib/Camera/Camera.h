@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include <Configuration.h>
+#include <Common.h>
 #include <PID.h>
 
 
@@ -28,6 +29,7 @@ private:
     friend class Camera;
     float _angle   = 0;
     float _dist    = 0;
+    float _size    = 0;
     bool  _visible = false;
 };
 
@@ -91,8 +93,8 @@ class Camera {
 public:
     Camera() {}
     void init();
-    void update(bool attackBlue);
-    void localise_to(float targX, float targY);
+    void update(bool attackBlue, float bearing);
+    void localise_to(float targX, float targY, float bearing);
     const TargetData&   attack()        const { return attackGoal; }
     const TargetData&   defend()        const { return defendGoal; }
     const BallData&     ball()          const { return ballInfo;   }
@@ -100,12 +102,13 @@ public:
 private:
     float calc_distance(float x, float y);
     float calc_angle(float opp, float adj);
-    float px_to_cm(int px);
+    float px_to_mm(int px);
     void shift(int& x, int& y);
     TargetData      attackGoal;
     TargetData      defendGoal;
     BallData        ballInfo;
     RobotData       robotData;
+    Common com;
 };
 
 #endif

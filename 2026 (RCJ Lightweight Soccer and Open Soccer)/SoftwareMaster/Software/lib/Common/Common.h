@@ -9,6 +9,7 @@ public:
     float midAngleBetween(float angleCounterClockwise, float angleClockwise);
     float normaliseAngle180(float angle);
     float normaliseAngle360(float angle);
+    float floatMod(float x, float m);
     int intMod(int x, int m);
 private:
 };

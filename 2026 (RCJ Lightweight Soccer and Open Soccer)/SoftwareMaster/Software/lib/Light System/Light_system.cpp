@@ -66,103 +66,132 @@ void LightSystem::update()
 /// @brief calutaltes the line direction
 void LightSystem::calculate_line_dir()
 {
-    int clusterData[4][2];
-    int clusterAmt = 0;
-    int minIndex = 0;
-    bool inCluster = false;
+    // VARIABLES
+    float lineX = 0; float lineY = 0;
     lineDirection = -1;
+    float values[NUM_LS] = {-1};
 
-    for (uint8_t i = 0; i < NUM_LS; i++)
-    {
-        // If a sensor in inner circle is above white thresh, then it should start an inner cluster.
-        if (inner_read(i) > LS_THRESH && inCluster != true)
-        {
-            inCluster = true;
-            minIndex = i;
-            if (lineState == 0 && clusterAmt)
-            {
-                initialClusterPointStart = i;
-            }
-            else
-            {
-                initialClusterPointEnd = i;
-            }
-        }
-        // Making the cluster end
-        if (inCluster == true && !(inner_read(i) > LS_THRESH))
-        {
-            if (lineState == 0)
-            {
-                secondClusterPointStart = i;
-            }
-            else
-            {
-                secondClusterPointEnd = i;
-            }
-            inCluster = false;
-            clusterData[clusterAmt][0] = minIndex;
-            clusterData[clusterAmt][1] = i - 1;
-            clusterAmt++;
-        }
+    // Constructs A Vector From The Triggered Light Sensors
+    for (int i = 0; i < NUM_LS; i++) {
+        values[i] = inner_read(muxIndex[i]);
+        if(inner_read(muxIndex[i]) >= LS_THRESH) {lineX+=cos(360*(i/NUM_LS));lineY+=sin(360*(i/NUM_LS));}
     }
-    // Edge Case (Last Sensor and First Sensor)
-    if (inCluster == true && clusterData[0][0] == 0)
-    {
-        clusterData[0][0] = minIndex;
+    
+    // Checks If Line Is Seen At All 
+    if(lineX==0 && lineY==0) {return;}
+    else {
+        lineDirection = atan2(lineY,lineX);
     }
-    else if (inCluster == true)
-    {
-        clusterData[clusterAmt][0] = minIndex;
-        clusterData[clusterAmt][1] = NUM_LS - 1;
-        clusterAmt++;
+    // Serial.print(lineState);
+    // Serial.print("/t");
+    for (int i = 0; i < NUM_LS; i++) {
+        Serial.print(values[i]);
+        Serial.print("\t");
     }
-    // Finding the centre of the clusters
-    float clusterMid[clusterAmt];
-    for (uint8_t i = 0; i < clusterAmt; i++)
-    {
-        if (clusterData[i][0] < clusterData[i][1])
-        {
-            clusterMid[i] = (clusterData[i][0] + clusterData[i][1]) / 2;
-            clusterMid[i] *= (360.0f / NUM_LS);
-        }
-        else
-        {
-            clusterMid[i] = (clusterData[i][0] + clusterData[i][1]) / 2 + 16;
-            clusterMid[i] *= (360.0f / NUM_LS);
-        }
-    }
-
-    // Cluster Cases
-    if (clusterAmt == 1)
-    {
-        // If there is only one cluster, just assign the line direction as middle of cluster.
-        lineDirection = clusterMid[0];
-    }
-    else if (clusterAmt == 2)
-    {
-        // If there are two clusters, find the in between of those clusters and make that line dir.
-        if (abs(clusterMid[0] - clusterMid[1]) > 180)
-        {
-            lineDirection = ((clusterMid[0] + 360) + clusterMid[1]) / 2;
-        }
-        else
-        {
-            lineDirection = (clusterMid[0] + clusterMid[1]) / 2;
-        }
-    }
-    else if (clusterAmt == 3)
-    {
-        // If there are 3 clusters, pair them, find the middle of them, then find the middle of the new pairs.
-        if (abs(clusterMid[0] - clusterMid[2]) > 180)
-        {
-            lineDirection = ((clusterMid[0] + 360) + clusterMid[2]) / 2;
-        }
-        else
-        {
-            lineDirection = (clusterMid[0] + clusterMid[2]) / 2;
-        }
-    }
+    Serial.println("");
+    
 }
+
+// /// @brief calutaltes the line direction
+// void LightSystem::calculate_line_dir()
+// {
+//     int clusterData[4][2];
+//     int clusterAmt = 0;
+//     int minIndex = 0;
+//     bool inCluster = false;
+//     lineDirection = -1;
+
+//     for (uint8_t i = 0; i < NUM_LS; i++)
+//     {
+//         // If a sensor in inner circle is above white thresh, then it should start an inner cluster.
+//         if (inner_read(i) > LS_THRESH && inCluster != true)
+//         {
+//             inCluster = true;
+//             minIndex = i;
+//             if (lineState == 0 && clusterAmt)
+//             {
+//                 initialClusterPointStart = i;
+//             }
+//             else
+//             {
+//                 initialClusterPointEnd = i;
+//             }
+//         }
+//         // Making the cluster end
+//         if (inCluster == true && !(inner_read(i) > LS_THRESH))
+//         {
+//             if (lineState == 0)
+//             {
+//                 secondClusterPointStart = i;
+//             }
+//             else
+//             {
+//                 secondClusterPointEnd = i;
+//             }
+//             inCluster = false;
+//             clusterData[clusterAmt][0] = minIndex;
+//             clusterData[clusterAmt][1] = i - 1;
+//             clusterAmt++;
+//         }
+//     }
+//     // Edge Case (Last Sensor and First Sensor)
+//     if (inCluster == true && clusterData[0][0] == 0)
+//     {
+//         clusterData[0][0] = minIndex;
+//     }
+//     else if (inCluster == true)
+//     {
+//         clusterData[clusterAmt][0] = minIndex;
+//         clusterData[clusterAmt][1] = NUM_LS - 1;
+//         clusterAmt++;
+//     }
+//     // Finding the centre of the clusters
+//     float clusterMid[clusterAmt];
+//     for (uint8_t i = 0; i < clusterAmt; i++)
+//     {
+//         if (clusterData[i][0] < clusterData[i][1])
+//         {
+//             clusterMid[i] = (clusterData[i][0] + clusterData[i][1]) / 2;
+//             clusterMid[i] *= (360.0f / NUM_LS);
+//         }
+//         else
+//         {
+//             clusterMid[i] = (clusterData[i][0] + clusterData[i][1]) / 2 + 16;
+//             clusterMid[i] *= (360.0f / NUM_LS);
+//         }
+//     }
+
+//     // Cluster Cases
+//     if (clusterAmt == 1)
+//     {
+//         // If there is only one cluster, just assign the line direction as middle of cluster.
+//         lineDirection = clusterMid[0];
+//     }
+//     else if (clusterAmt == 2)
+//     {
+//         // If there are two clusters, find the in between of those clusters and make that line dir.
+//         if (abs(clusterMid[0] - clusterMid[1]) > 180)
+//         {
+//             lineDirection = ((clusterMid[0] + 360) + clusterMid[1]) / 2;
+//         }
+//         else
+//         {
+//             lineDirection = (clusterMid[0] + clusterMid[1]) / 2;
+//         }
+//     }
+//     else if (clusterAmt == 3)
+//     {
+//         // If there are 3 clusters, pair them, find the middle of them, then find the middle of the new pairs.
+//         if (abs(clusterMid[0] - clusterMid[2]) > 180)
+//         {
+//             lineDirection = ((clusterMid[0] + 360) + clusterMid[2]) / 2;
+//         }
+//         else
+//         {
+//             lineDirection = (clusterMid[0] + clusterMid[2]) / 2;
+//         }
+//     }
+// }
 
 void LightSystem::calculate_line_dir_outter(){
     float xx = 0; float yy = 0;

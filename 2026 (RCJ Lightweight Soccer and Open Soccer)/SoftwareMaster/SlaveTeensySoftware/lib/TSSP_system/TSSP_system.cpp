@@ -10,54 +10,77 @@ void TsspSystem::init() {
     }
 }
 
-void TsspSystem::update() {
-    ballStr = 0;
-    uint8_t tsspValues[TSSP_NUM] = {0};
-    uint8_t tsspSortedValues[TSSP_NUM] = {0};
-    uint8_t tsspSortedIndex[TSSP_NUM] = {0}; 
+#define TSSP_THRESHOLD 20
 
+void TsspSystem::update() {
+    uint8_t rawValues[TSSP_NUM] = {0};
+    uint8_t read = 0;
+    
+    // 1. Data Collection (Same as your original)
     for (uint8_t i = 0; i < 100; i++) {
         for (uint8_t j = 0; j < TSSP_NUM; j++) {
-            tsspValues[j] += 1 - digitalRead(tsspPins[j]);
+            rawValues[j] += 1 - digitalRead(tsspPins[j]);
         }
         delayMicroseconds(10);
     }
 
-    for(uint8_t i = 0; i < TSSP_NUM; i++) {
-        Serial.print(tsspValues[i]);
-        Serial.print(" ");
-    }
-    Serial.println();
-    Serial.println();
-    int tt = 0;
+    // for (uint8_t i=0; i < TSSP_NUM; i++) {
+    //     Serial.print(rawValues[i]);
+    //     Serial.print("\t");
+    // }
+    // Serial.println("");
 
-    for(uint8_t i = 0; i < TSSP_NUM; i++) {
-        for(uint8_t j = 0; j < TSSP_NUM; j++) {
-            if(tsspValues[i] > tsspSortedValues[j]) {
-                if(j <= i) {
-                    ARRAYSHIFTDOWN(tsspSortedValues, j, i);
-                    ARRAYSHIFTDOWN(tsspSortedIndex, j, i);
-                }
-                tsspSortedValues[j] = tsspValues[i];
-                tsspSortedIndex[j] = i;
-                break;
-            }
+    for (uint8_t j = 0; j < TSSP_NUM; j++) {
+        if (rawValues[j] > 0) {
+            read += 1;
         }
     }
-    tt = ( tsspSortedIndex[0] + tsspSortedIndex[1] ) / 2;
-    //Serial.println(tt);
-    float x = 0.0;
-    float y = 0.0;
-    for(uint8_t i = 0; i < 4; i++) {
-        x += tsspSortedValues[i]*(cos(tsspSortedIndex[i]*(360.0/TSSP_NUM)*RAD_TO_DEG));
-        y += tsspSortedValues[i]*(sin(tsspSortedIndex[i]*(360.0/TSSP_NUM)*RAD_TO_DEG));
-    }
-    x /= 4;
-    y /= 4;
-    //ballDir = tsspSortedValues[0];
-    //Serial.println(tt*360/TSSP_NUM);
-    ballStr = ((3 * tsspSortedValues[0]) + (2 * tsspSortedValues[1]) + tsspSortedValues[2] + tsspSortedValues[3]) / 7.0;
-    ballDir = (ballStr != 0) ? 360 -fmod((RAD_TO_DEG * (atan2f(y, x)))-90, 360) : 0;
-    ballDir = ((tt*360/TSSP_NUM) % 360);
 
+    for (uint8_t i = 0; i < TSSP_NUM; i++) {
+        if(rawValues[i] != 0 || rawValues[i] != 255) {
+            rawValues[i] += tsspOffset[i];
+        }
+    }
+
+    float clusterX = 0, clusterY = 0;
+    int activeSensors = 0;
+
+    // 2. Clustering Logic
+    // We treat the sensors as a circular array
+    for (int i = 0; i < TSSP_NUM; i++) {
+        if (rawValues[i] > TSSP_THRESHOLD) {
+            float angle = (i * 360.0 / TSSP_NUM) * DEG_TO_RAD;
+            
+            // Add component vectors based on intensity
+            clusterX += rawValues[i] * cos(angle);
+            clusterY += rawValues[i] * sin(angle);
+            
+            activeSensors++;
+        }
+    }
+
+    // 3. Final Calculation
+    if (activeSensors > 0) {
+        // Average direction
+        // ballDir = floatMod(atan2(clusterY, clusterX) * RAD_TO_DEG, 360);
+        ballDir = floatMod(180-((atan2f(clusterY, clusterX))*RAD_TO_DEG)-90, 360);
+        
+        // Normalize magnitude (e.g., average intensity per active sensor)
+    } else {
+        ballDir = 0;
+        ballStr = 0;
+    }
+
+    // ballStr = read;
+    float rawStr = (float)read;
+    smoothedBallStr = (rawStr * alpha) + (smoothedBallStr * (1.0 - alpha));
+    ballStr = (read!=0)?(uint8_t)smoothedBallStr:0;
+    Serial.print(ballDir);
+    Serial.print("\t");
+    Serial.println(ballStr);
+}
+
+float TsspSystem::floatMod(float x, float m){
+    float r = fmod(x, m);
+    return r<0 ? r+m : r;
 }

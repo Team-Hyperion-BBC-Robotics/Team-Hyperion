@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Pins.h>
+#include <Configuration.h>
 
 class TsspSystem {
 public:
@@ -20,6 +21,15 @@ private:
     float yVa[TSSP_NUM] = {0.0};
     float ballStrBuffer[5] = {0}; 
     int bufferIdx = 0;
+    float floatMod(float x, float y);
+    float smoothedBallStr = 0;
+    float alpha = 0.2; // 0.1 - 0.5 , lower = laggy, very smooth, higher = responsive, less smooth
+    uint8_t tsspOffset[TSSP_NUM] = {
+        TOF1,  TOF2,  TOF3,  TOF4,  TOF5,  TOF6, 
+        TOF7,  TOF8,  TOF9,  TOF10, TOF11, TOF12, 
+        TOF13, TOF14, TOF15, TOF16, TOF17, TOF18, 
+        TOF19, TOF20, TOF21, TOF22, TOF23, TOF24
+    };
 
     #define SENSOR_BROKEN_HIGH 255
     #define SENSOR_BROKEN_LOW 0 

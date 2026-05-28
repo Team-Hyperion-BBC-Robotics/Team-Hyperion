@@ -27,6 +27,14 @@ private:
     // Variables
         int inPin[4] = {LIGHT_PIN_DIGI_0, LIGHT_PIN_DIGI_1, LIGHT_PIN_DIGI_2,
                             LIGHT_PIN_DIGI_3};
+        int muxIndex[48] = {
+            41, 0, 40, 0, 39, 16, 38, 14,
+            18, 19, 20, 42, 22, 43, 0, 23,
+            29, 28, 27, 26, 45, 44, 25, 24,
+            46, 47, 32, 33, 30, 31, 0, 1, // this and above of this array does not work
+            8, 9, 10, 11, 12, 13, 37, 34,
+            2, 3, 4, 5, 6, 7, 36, 35};
+        
         float lineDirection = 0.0;
         float prevLineDirection = 0.0;
         int lineState = 0;
